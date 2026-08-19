@@ -1,18 +1,37 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
-import { ChevronRight, Plus, Trash2, CalendarDays, Sprout, TrendingUp } from "lucide-react";
+import {
+  AlertTriangle,
+  Bug,
+  CalendarDays,
+  Check,
+  ChevronRight,
+  Droplets,
+  Leaf,
+  PackageCheck,
+  Plus,
+  Satellite,
+  Sprout,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
 import { AppShell, Badge, Card, SectionTitle } from "@/components/AppShell";
 import { usePlots } from "@/hooks/usePlots";
 import { useDragonflyData } from "@/hooks/useDragonflyData";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { toast } from "sonner";
 import { getLocalDateKey } from "@/lib/dragonfly-data";
+import { FarmIcon } from "@/components/FarmIcon";
 
 export const Route = createFileRoute("/crop-calendar")({
   head: () => ({
     meta: [
       { title: "ปฏิทินพืชอัตโนมัติ — สวนอัจฉริยะ" },
-      { name: "description", content: "Timeline การเจริญเติบโตของพืชแต่ละชนิด ตั้งแต่เพาะปลูกถึงเก็บเกี่ยว พร้อมคำแนะนำรายช่วง" },
+      {
+        name: "description",
+        content:
+          "Timeline การเจริญเติบโตของพืชแต่ละชนิด ตั้งแต่เพาะปลูกถึงเก็บเกี่ยว พร้อมคำแนะนำรายช่วง",
+      },
       { property: "og:title", content: "ปฏิทินพืชอัตโนมัติ — สวนอัจฉริยะ" },
     ],
   }),
@@ -43,12 +62,46 @@ export type CropDef = {
 
 function createPerennialCrop(name: string, emoji: string): CropDef {
   return {
-    name, emoji, totalDays: 300,
+    name,
+    emoji,
+    totalDays: 300,
     stages: [
-      { key: "vegetative", label: "บำรุงต้นและใบ", emoji: "🌱", durationDays: 75, description: "ฟื้นต้น สร้างใบและสะสมอาหารก่อนเข้าสู่รอบผลผลิต", fertilizer: "ปรับตามผลตรวจดินและอายุต้น", water: "ให้น้ำสม่ำเสมอตามความชื้นดิน" },
-      { key: "flowering", label: "ออกดอก / สร้างช่อ", emoji: "🌸", durationDays: 45, description: "ติดตามความสมบูรณ์ของช่อและความเสี่ยงจากฝนหรือแมลง", fertilizer: "เน้นธาตุฟอสฟอรัสและโพแทสเซียมตามคำแนะนำผู้เชี่ยวชาญ", water: "หลีกเลี่ยงการให้น้ำมากหรือน้อยฉับพลัน" },
-      { key: "fruit", label: "พัฒนาผล", emoji: "🍃", durationDays: 150, description: "ดูแลน้ำ ธาตุอาหาร และตรวจแมลงอย่างสม่ำเสมอ", fertilizer: "แบ่งใส่ปุ๋ยตามผลตรวจดินและขนาดทรงพุ่ม", water: "ให้น้ำตามความชื้นดินและสภาพอากาศ" },
-      { key: "harvest", label: "เก็บเกี่ยว / ฟื้นต้น", emoji: "🧺", durationDays: 30, description: "วางแผนเก็บเกี่ยว คัดคุณภาพ และบันทึกผลผลิต", fertilizer: "บำรุงต้นหลังเก็บเกี่ยว", satelliteHint: "ใช้เป็นบริบทประกอบการตรวจ ไม่ใช่ผลวินิจฉัยจากภาพดาวเทียมจริง" },
+      {
+        key: "vegetative",
+        label: "บำรุงต้นและใบ",
+        emoji: "🌱",
+        durationDays: 75,
+        description: "ฟื้นต้น สร้างใบและสะสมอาหารก่อนเข้าสู่รอบผลผลิต",
+        fertilizer: "ปรับตามผลตรวจดินและอายุต้น",
+        water: "ให้น้ำสม่ำเสมอตามความชื้นดิน",
+      },
+      {
+        key: "flowering",
+        label: "ออกดอก / สร้างช่อ",
+        emoji: "🌸",
+        durationDays: 45,
+        description: "ติดตามความสมบูรณ์ของช่อและความเสี่ยงจากฝนหรือแมลง",
+        fertilizer: "เน้นธาตุฟอสฟอรัสและโพแทสเซียมตามคำแนะนำผู้เชี่ยวชาญ",
+        water: "หลีกเลี่ยงการให้น้ำมากหรือน้อยฉับพลัน",
+      },
+      {
+        key: "fruit",
+        label: "พัฒนาผล",
+        emoji: "🍃",
+        durationDays: 150,
+        description: "ดูแลน้ำ ธาตุอาหาร และตรวจแมลงอย่างสม่ำเสมอ",
+        fertilizer: "แบ่งใส่ปุ๋ยตามผลตรวจดินและขนาดทรงพุ่ม",
+        water: "ให้น้ำตามความชื้นดินและสภาพอากาศ",
+      },
+      {
+        key: "harvest",
+        label: "เก็บเกี่ยว / ฟื้นต้น",
+        emoji: "🧺",
+        durationDays: 30,
+        description: "วางแผนเก็บเกี่ยว คัดคุณภาพ และบันทึกผลผลิต",
+        fertilizer: "บำรุงต้นหลังเก็บเกี่ยว",
+        satelliteHint: "ใช้เป็นบริบทประกอบการตรวจ ไม่ใช่ผลวินิจฉัยจากภาพดาวเทียมจริง",
+      },
     ],
   };
 }
@@ -157,7 +210,8 @@ const CROP_DB: Record<string, CropDef> = {
         fertilizer: "ปุ๋ย 8-24-24 หรือ 12-24-12 อัตรา 1-1.5 กก./ต้น",
         water: "รดน้ำกลับเพิ่มขึ้นอย่างช้าๆ อย่าให้ดินชื้นมากเกินไปเพราะดอกร่วง",
         pestWarning: "ระวังหนอนเจาะช่อดอก ฉีดพ่น Chlorpyrifos ก่อนดอกบาน",
-        satelliteHint: "ทรงพุ่มมีจุดขาวๆ — ช่อดอกสีขาวครีมสามารถมองเห็นได้จากภาพดาวเทียมความละเอียดสูง",
+        satelliteHint:
+          "ทรงพุ่มมีจุดขาวๆ — ช่อดอกสีขาวครีมสามารถมองเห็นได้จากภาพดาวเทียมความละเอียดสูง",
       },
       {
         key: "fruit_set",
@@ -377,12 +431,12 @@ const CROP_DB: Record<string, CropDef> = {
       },
     ],
   },
-  "มะพร้าวน้ำหอม": createPerennialCrop("มะพร้าวน้ำหอม", "🥥"),
-  "ส้มโอ": createPerennialCrop("ส้มโอ", "🍊"),
-  "เงาะ": createPerennialCrop("เงาะ", "🍎"),
-  "ปาล์มน้ำมัน": createPerennialCrop("ปาล์มน้ำมัน", "🌴"),
-  "ยางพารา": createPerennialCrop("ยางพารา", "🪵"),
-  "มะนาว": createPerennialCrop("มะนาว", "🍋"),
+  มะพร้าวน้ำหอม: createPerennialCrop("มะพร้าวน้ำหอม", "🥥"),
+  ส้มโอ: createPerennialCrop("ส้มโอ", "🍊"),
+  เงาะ: createPerennialCrop("เงาะ", "🍎"),
+  ปาล์มน้ำมัน: createPerennialCrop("ปาล์มน้ำมัน", "🌴"),
+  ยางพารา: createPerennialCrop("ยางพารา", "🪵"),
+  มะนาว: createPerennialCrop("มะนาว", "🍋"),
 };
 
 // ─────────────────────────────────────────────
@@ -398,7 +452,7 @@ type PlotCrop = {
 function calcStageInfo(
   def: CropDef,
   plantedDate: string,
-  today: Date
+  today: Date,
 ): {
   daysSincePlanted: number;
   currentStageIdx: number;
@@ -411,7 +465,10 @@ function calcStageInfo(
   stageStartDates: Date[];
 } {
   const planted = new Date(plantedDate + "T00:00:00");
-  const daysSincePlanted = Math.max(0, Math.floor((today.getTime() - planted.getTime()) / 86_400_000));
+  const daysSincePlanted = Math.max(
+    0,
+    Math.floor((today.getTime() - planted.getTime()) / 86_400_000),
+  );
 
   let acc = 0;
   let currentStageIdx = def.stages.length - 1;
@@ -437,7 +494,17 @@ function calcStageInfo(
   const stageProgress = Math.min(100, Math.round((daysIntoStage / stage.durationDays) * 100));
   const overallProgress = Math.min(100, Math.round((daysSincePlanted / def.totalDays) * 100));
 
-  return { daysSincePlanted, currentStageIdx, stageStartDay, daysIntoStage, daysLeftInStage, totalDaysLeft, stageProgress, overallProgress, stageStartDates };
+  return {
+    daysSincePlanted,
+    currentStageIdx,
+    stageStartDay,
+    daysIntoStage,
+    daysLeftInStage,
+    totalDaysLeft,
+    stageProgress,
+    overallProgress,
+    stageStartDates,
+  };
 }
 
 function formatDate(d: Date) {
@@ -452,7 +519,16 @@ function buildDemoPlotCrops(plots: ReturnType<typeof usePlots>["plots"]): PlotCr
   };
   return plots.slice(0, 3).flatMap((plot, index) => {
     const cropKey = Object.keys(CROP_DB).find((key) => plot.crop.includes(key));
-    return cropKey ? [{ id: `demo-cycle-${plot.id}`, plotId: plot.id, cropKey, plantedDate: daysAgo([142, 96, 54][index] ?? 45) }] : [];
+    return cropKey
+      ? [
+          {
+            id: `demo-cycle-${plot.id}`,
+            plotId: plot.id,
+            cropKey,
+            plantedDate: daysAgo([142, 96, 54][index] ?? 45),
+          },
+        ]
+      : [];
   });
 }
 
@@ -525,24 +601,62 @@ function CropCalendarPage() {
 
   const today = useMemo(() => new Date(), []);
   const selectedSite = dragonfly.state.sites.find((site) => site.id === siteFilter);
-  const scopedPlots = useMemo(() => plots.filter((plot) => {
-    const matchesFarm = (plot.farmId ?? "FARM-PRIMARY") === farmFilter;
-    const matchesSite = siteFilter === "ทั้งหมด" || plot.siteId === siteFilter || (!plot.siteId && selectedSite?.plotPrefixes.some((prefix) => plot.id.startsWith(prefix)));
-    return matchesFarm && matchesSite;
-  }), [farmFilter, plots, selectedSite, siteFilter]);
-  const plotOptions = useMemo(() => ["ทั้งหมด", ...scopedPlots.map((plot) => ({ value: plot.id, label: `${plot.id} · ${plot.name} · ${plot.crop}` }))], [scopedPlots]);
-  const cropOptions = useMemo(() => ["ทั้งหมด", ...Object.entries(CROP_DB).map(([key, def]) => ({ value: key, label: `${def.emoji} ${def.name}` }))], []);
-  const visiblePlotCrops = useMemo(() => plotCrops.filter((cycle) => {
-    const matchesPlot = plotFilter === "ทั้งหมด" || cycle.plotId === plotFilter;
-    return matchesPlot && (cropFilter === "ทั้งหมด" || cycle.cropKey === cropFilter) && scopedPlots.some((plot) => plot.id === cycle.plotId);
-  }), [cropFilter, plotFilter, plotCrops, scopedPlots]);
+  const scopedPlots = useMemo(
+    () =>
+      plots.filter((plot) => {
+        const matchesFarm = (plot.farmId ?? "FARM-PRIMARY") === farmFilter;
+        const matchesSite =
+          siteFilter === "ทั้งหมด" ||
+          plot.siteId === siteFilter ||
+          (!plot.siteId && selectedSite?.plotPrefixes.some((prefix) => plot.id.startsWith(prefix)));
+        return matchesFarm && matchesSite;
+      }),
+    [farmFilter, plots, selectedSite, siteFilter],
+  );
+  const plotOptions = useMemo(
+    () => [
+      "ทั้งหมด",
+      ...scopedPlots.map((plot) => ({
+        value: plot.id,
+        label: `${plot.id} · ${plot.name} · ${plot.crop}`,
+      })),
+    ],
+    [scopedPlots],
+  );
+  const cropOptions = useMemo(
+    () => [
+      "ทั้งหมด",
+      ...Object.entries(CROP_DB).map(([key, def]) => ({
+        value: key,
+        label: `${def.emoji} ${def.name}`,
+      })),
+    ],
+    [],
+  );
+  const visiblePlotCrops = useMemo(
+    () =>
+      plotCrops.filter((cycle) => {
+        const matchesPlot = plotFilter === "ทั้งหมด" || cycle.plotId === plotFilter;
+        return (
+          matchesPlot &&
+          (cropFilter === "ทั้งหมด" || cycle.cropKey === cropFilter) &&
+          scopedPlots.some((plot) => plot.id === cycle.plotId)
+        );
+      }),
+    [cropFilter, plotFilter, plotCrops, scopedPlots],
+  );
 
   useEffect(() => {
-    if (plotFilter !== "ทั้งหมด" && !scopedPlots.some((plot) => plot.id === plotFilter)) setPlotFilter("ทั้งหมด");
+    if (plotFilter !== "ทั้งหมด" && !scopedPlots.some((plot) => plot.id === plotFilter))
+      setPlotFilter("ทั้งหมด");
   }, [plotFilter, scopedPlots]);
 
   useEffect(() => {
-    if (visiblePlotCrops.length && !visiblePlotCrops.some((cycle) => cycle.id === selectedPlotCropId)) setSelectedPlotCropId(visiblePlotCrops[0]!.id);
+    if (
+      visiblePlotCrops.length &&
+      !visiblePlotCrops.some((cycle) => cycle.id === selectedPlotCropId)
+    )
+      setSelectedPlotCropId(visiblePlotCrops[0]!.id);
   }, [selectedPlotCropId, visiblePlotCrops]);
 
   const selected = visiblePlotCrops.find((c) => c.id === selectedPlotCropId);
@@ -554,33 +668,113 @@ function CropCalendarPage() {
     return calcStageInfo(selectedDef, selected.plantedDate, today);
   }, [selected, selectedDef, today]);
 
-  const currentStage = selectedDef && stageInfo ? selectedDef.stages[stageInfo.currentStageIdx] : null;
-  const nextStage = selectedDef && stageInfo ? selectedDef.stages[stageInfo.currentStageIdx + 1] : null;
+  const currentStage =
+    selectedDef && stageInfo ? selectedDef.stages[stageInfo.currentStageIdx] : null;
+  const nextStage =
+    selectedDef && stageInfo ? selectedDef.stages[stageInfo.currentStageIdx + 1] : null;
 
   return (
     <AppShell title="ปฏิทิน AI" subtitle="Timeline การเจริญเติบโตและงานตามรอบปลูก">
       {dragonfly.isDemoMode ? (
         <Card className="border-primary/30 bg-primary-soft/45">
           <p className="text-sm font-semibold text-primary">ข้อมูลตัวอย่างของปฏิทิน AI</p>
-          <p className="mt-1 text-xs text-muted-foreground">รอบปลูกและช่วงการดูแลคำนวณจากเทมเพลตพืชกับวันที่ปลูกที่ระบบสร้างขึ้น เป็นประมาณการแบบ rule-based ใน Demo Mode ไม่ใช่ข้อมูลเซนเซอร์หรือคำสั่ง AI จริง</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            รอบปลูกและช่วงการดูแลคำนวณจากเทมเพลตพืชกับวันที่ปลูกที่ระบบสร้างขึ้น เป็นประมาณการแบบ
+            rule-based ใน Demo Mode ไม่ใช่ข้อมูลเซนเซอร์หรือคำสั่ง AI จริง
+          </p>
         </Card>
       ) : null}
       <Card className="border-primary/25 bg-card">
-        <div className="flex items-start gap-3"><CalendarDays className="mt-0.5 size-5 shrink-0 text-primary" /><div><p className="text-sm font-semibold">ปฏิทิน AI มีไว้ทำอะไร</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">เป็นแผนรอบปลูกที่คาดช่วงการเจริญเติบโตจากชนิดพืชและวันที่ปลูก เพื่อเตือนสิ่งที่ควรเตรียมล่วงหน้า ไม่ใช่รายการงานที่คนงานต้องทำทันที</p></div></div>
-        <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]"><div className="rounded-lg bg-muted/55 p-2"><strong>1. คำนวณช่วงพืช</strong><p className="mt-0.5 text-muted-foreground">Rule-based จากเทมเพลตพืช</p></div><div className="rounded-lg bg-muted/55 p-2"><strong>2. เสนอแผนดูแล</strong><p className="mt-0.5 text-muted-foreground">น้ำ ปุ๋ย โรค และการเตรียมเก็บ</p></div><div className="rounded-lg bg-muted/55 p-2"><strong>3. คนตรวจสอบ</strong><p className="mt-0.5 text-muted-foreground">เทียบอากาศ เซนเซอร์ และสภาพจริง</p></div><div className="rounded-lg bg-muted/55 p-2"><strong>4. สร้าง Task</strong><p className="mt-0.5 text-muted-foreground">ยืนยันแล้วจึงเข้าปฏิทินงาน</p></div></div>
-        <p className="mt-3 text-[11px] text-muted-foreground">ระบบจะไม่สั่งซื้อวัสดุ เปิดวาล์ว หรือมอบหมายคนอัตโนมัติโดยไม่มีผู้ใช้ยืนยัน</p>
+        <div className="flex items-start gap-3">
+          <CalendarDays className="mt-0.5 size-5 shrink-0 text-primary" />
+          <div>
+            <p className="text-sm font-semibold">ปฏิทิน AI มีไว้ทำอะไร</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              เป็นแผนรอบปลูกที่คาดช่วงการเจริญเติบโตจากชนิดพืชและวันที่ปลูก
+              เพื่อเตือนสิ่งที่ควรเตรียมล่วงหน้า ไม่ใช่รายการงานที่คนงานต้องทำทันที
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 text-[11px]">
+          <div className="rounded-lg bg-muted/55 p-2">
+            <strong>1. คำนวณช่วงพืช</strong>
+            <p className="mt-0.5 text-muted-foreground">Rule-based จากเทมเพลตพืช</p>
+          </div>
+          <div className="rounded-lg bg-muted/55 p-2">
+            <strong>2. เสนอแผนดูแล</strong>
+            <p className="mt-0.5 text-muted-foreground">น้ำ ปุ๋ย โรค และการเตรียมเก็บ</p>
+          </div>
+          <div className="rounded-lg bg-muted/55 p-2">
+            <strong>3. คนตรวจสอบ</strong>
+            <p className="mt-0.5 text-muted-foreground">เทียบอากาศ เซนเซอร์ และสภาพจริง</p>
+          </div>
+          <div className="rounded-lg bg-muted/55 p-2">
+            <strong>4. สร้าง Task</strong>
+            <p className="mt-0.5 text-muted-foreground">ยืนยันแล้วจึงเข้าปฏิทินงาน</p>
+          </div>
+        </div>
+        <p className="mt-3 text-[11px] text-muted-foreground">
+          ระบบจะไม่สั่งซื้อวัสดุ เปิดวาล์ว หรือมอบหมายคนอัตโนมัติโดยไม่มีผู้ใช้ยืนยัน
+        </p>
       </Card>
       <Card className="space-y-3">
-        <SearchableSelect label="ฟาร์ม" options={dragonfly.dashboardFarms.map((farm) => ({ value: farm.id, label: `${farm.name} · ${farm.location}` }))} value={farmFilter} onChange={(value) => { setFarmFilter(value); setSiteFilter("ทั้งหมด"); setPlotFilter("ทั้งหมด"); }} searchPlaceholder="ค้นหาชื่อฟาร์มหรือพื้นที่" />
-        <SearchableSelect label="โซน" options={["ทั้งหมด", ...dragonfly.state.sites.map((site) => ({ value: site.id, label: `${site.code} · ${site.name}` }))]} value={siteFilter} onChange={(value) => { setSiteFilter(value); setPlotFilter("ทั้งหมด"); }} allLabel="ทุกโซนในฟาร์ม" searchPlaceholder="ค้นหารหัสหรือชื่อโซน" />
-        <SearchableSelect label="แปลง" options={plotOptions} value={plotFilter} onChange={setPlotFilter} allLabel="ทุกแปลงในขอบเขต" searchPlaceholder="ค้นหารหัส ชื่อแปลง หรือพืช" />
-        <SearchableSelect label="ชนิดพืช" options={cropOptions} value={cropFilter} onChange={setCropFilter} allLabel="พืชทุกชนิด" searchPlaceholder="ค้นหาชนิดพืช" />
-        <p className="text-xs text-muted-foreground">แสดง {visiblePlotCrops.length} จาก {plotCrops.length} รอบปลูกในขอบเขตที่เลือก</p>
+        <SearchableSelect
+          label="ฟาร์ม"
+          options={dragonfly.dashboardFarms.map((farm) => ({
+            value: farm.id,
+            label: `${farm.name} · ${farm.location}`,
+          }))}
+          value={farmFilter}
+          onChange={(value) => {
+            setFarmFilter(value);
+            setSiteFilter("ทั้งหมด");
+            setPlotFilter("ทั้งหมด");
+          }}
+          searchPlaceholder="ค้นหาชื่อฟาร์มหรือพื้นที่"
+        />
+        <SearchableSelect
+          label="โซน"
+          options={[
+            "ทั้งหมด",
+            ...dragonfly.state.sites.map((site) => ({
+              value: site.id,
+              label: `${site.code} · ${site.name}`,
+            })),
+          ]}
+          value={siteFilter}
+          onChange={(value) => {
+            setSiteFilter(value);
+            setPlotFilter("ทั้งหมด");
+          }}
+          allLabel="ทุกโซนในฟาร์ม"
+          searchPlaceholder="ค้นหารหัสหรือชื่อโซน"
+        />
+        <SearchableSelect
+          label="แปลง"
+          options={plotOptions}
+          value={plotFilter}
+          onChange={setPlotFilter}
+          allLabel="ทุกแปลงในขอบเขต"
+          searchPlaceholder="ค้นหารหัส ชื่อแปลง หรือพืช"
+        />
+        <SearchableSelect
+          label="ชนิดพืช"
+          options={cropOptions}
+          value={cropFilter}
+          onChange={setCropFilter}
+          allLabel="พืชทุกชนิด"
+          searchPlaceholder="ค้นหาชนิดพืช"
+        />
+        <p className="text-xs text-muted-foreground">
+          แสดง {visiblePlotCrops.length} จาก {plotCrops.length} รอบปลูกในขอบเขตที่เลือก
+        </p>
       </Card>
       {/* ── Header actions ── */}
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted-foreground">
-          {visiblePlotCrops.length > 0 ? `${visiblePlotCrops.length} รอบปลูก` : "ยังไม่มีรอบปลูกในขอบเขตนี้"}
+          {visiblePlotCrops.length > 0
+            ? `${visiblePlotCrops.length} รอบปลูก`
+            : "ยังไม่มีรอบปลูกในขอบเขตนี้"}
         </p>
         <button
           onClick={() => setShowAdd(true)}
@@ -592,23 +786,47 @@ function CropCalendarPage() {
 
       {/* ── Add form modal ── */}
       {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40" onClick={() => setShowAdd(false)}>
-          <div className="w-full max-w-md rounded-t-3xl bg-card p-5 pb-8 shadow-2xl space-y-4" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
+          onClick={() => setShowAdd(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-card p-5 pb-8 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
             <p className="font-semibold">เพิ่มรอบปลูกใหม่</p>
 
             {plots.length > 0 && (
               <div>
-                <SearchableSelect label="แปลง" options={plots.map((plot) => ({ value: plot.id, label: `${plot.id} · ${plot.name} · ${plot.crop}` }))} value={formPlotId} onChange={setFormPlotId} allLabel="เลือกแปลง" searchPlaceholder="ค้นหารหัส ชื่อแปลง หรือพืช" />
+                <SearchableSelect
+                  label="แปลง"
+                  options={plots.map((plot) => ({
+                    value: plot.id,
+                    label: `${plot.id} · ${plot.name} · ${plot.crop}`,
+                  }))}
+                  value={formPlotId}
+                  onChange={setFormPlotId}
+                  allLabel="เลือกแปลง"
+                  searchPlaceholder="ค้นหารหัส ชื่อแปลง หรือพืช"
+                />
               </div>
             )}
 
             <div>
               <p className="mb-1.5 text-xs font-medium text-muted-foreground">ชนิดพืช</p>
-              <SearchableSelect label="ชนิดพืช" options={cropOptions.filter((option) => option !== "ทั้งหมด")} value={formCropKey} onChange={setFormCropKey} searchPlaceholder="ค้นหาชนิดพืชหรือผลไม้" />
+              <SearchableSelect
+                label="ชนิดพืช"
+                options={cropOptions.filter((option) => option !== "ทั้งหมด")}
+                value={formCropKey}
+                onChange={setFormCropKey}
+                searchPlaceholder="ค้นหาชนิดพืชหรือผลไม้"
+              />
             </div>
 
             <div>
-              <p className="mb-1.5 text-xs font-medium text-muted-foreground">วันที่เพาะปลูก / ลงดิน</p>
+              <p className="mb-1.5 text-xs font-medium text-muted-foreground">
+                วันที่เพาะปลูก / ลงดิน
+              </p>
               <input
                 type="date"
                 value={formDate}
@@ -638,10 +856,13 @@ function CropCalendarPage() {
                 key={pc.id}
                 onClick={() => setSelectedPlotCropId(pc.id)}
                 className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium cursor-pointer transition-all ${
-                  pc.id === selectedPlotCropId ? "border-primary bg-primary-soft text-primary" : "border-border"
+                  pc.id === selectedPlotCropId
+                    ? "border-primary bg-primary-soft text-primary"
+                    : "border-border"
                 }`}
               >
-                {def?.emoji} {plot?.name ?? pc.plotId} ({def?.name})
+                <FarmIcon crop={def?.name} className="mr-1 inline size-3.5" />
+                {plot?.name ?? pc.plotId} ({def?.name})
               </button>
             );
           })}
@@ -651,10 +872,14 @@ function CropCalendarPage() {
       {/* ── Empty state ── */}
       {plotCrops.length === 0 && (
         <Card className="flex flex-col items-center gap-3 py-10 text-center border-dashed">
-          <span className="text-5xl">🌱</span>
+          <Sprout className="size-10 text-primary" />
           <div>
             <p className="font-semibold">ยังไม่มีรอบปลูก</p>
-            <p className="mt-1 text-xs text-muted-foreground">กดปุ่ม "เพิ่มรอบปลูก" แล้วเลือกพืชและวันที่ปลูก<br />ระบบจะสร้าง Timeline อัตโนมัติทันที</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              กดปุ่ม "เพิ่มรอบปลูก" แล้วเลือกพืชและวันที่ปลูก
+              <br />
+              ระบบจะสร้าง Timeline อัตโนมัติทันที
+            </p>
           </div>
           <button
             onClick={() => setShowAdd(true)}
@@ -668,8 +893,20 @@ function CropCalendarPage() {
       {plotCrops.length > 0 && visiblePlotCrops.length === 0 ? (
         <Card className="py-8 text-center">
           <p className="text-sm font-semibold text-foreground">ไม่พบรอบปลูกในขอบเขตนี้</p>
-          <p className="mt-1 text-xs text-muted-foreground">ลองเปลี่ยนฟาร์ม โซน แปลง หรือชนิดพืช เพื่อดูรอบปลูกอื่น</p>
-          <button type="button" onClick={() => { setSiteFilter("ทั้งหมด"); setPlotFilter("ทั้งหมด"); setCropFilter("ทั้งหมด"); }} className="mt-3 text-xs font-semibold text-primary">ล้างตัวกรองย่อย</button>
+          <p className="mt-1 text-xs text-muted-foreground">
+            ลองเปลี่ยนฟาร์ม โซน แปลง หรือชนิดพืช เพื่อดูรอบปลูกอื่น
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSiteFilter("ทั้งหมด");
+              setPlotFilter("ทั้งหมด");
+              setCropFilter("ทั้งหมด");
+            }}
+            className="mt-3 text-xs font-semibold text-primary"
+          >
+            ล้างตัวกรองย่อย
+          </button>
         </Card>
       ) : null}
 
@@ -681,18 +918,26 @@ function CropCalendarPage() {
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-xs text-primary-foreground/75">แปลง</p>
-                <p className="font-semibold">{selectedPlot?.emoji} {selectedPlot?.name ?? "—"}</p>
+                <p className="flex items-center gap-1 font-semibold">
+                  <FarmIcon crop={selectedPlot?.crop} className="size-4" />
+                  {selectedPlot?.name ?? "—"}
+                </p>
               </div>
-              <button onClick={() => removeCrop(selected.id)} className="rounded-full bg-white/15 p-1.5 cursor-pointer hover:bg-white/25">
+              <button
+                onClick={() => removeCrop(selected.id)}
+                className="rounded-full bg-white/15 p-1.5 cursor-pointer hover:bg-white/25"
+              >
                 <Trash2 className="size-3.5" />
               </button>
             </div>
             <div className="mt-3 flex items-center gap-3">
-              <span className="text-4xl">{currentStage.emoji}</span>
+              <span className="rounded-2xl bg-primary-foreground/15 p-2">
+                <Sprout className="size-8" />
+              </span>
               <div>
                 <p className="text-lg font-bold">{currentStage.label}</p>
                 <p className="text-xs text-primary-foreground/80">
-                  วันที่ {stageInfo.daysSincePlanted + 1} — {selectedDef.name} {selectedDef.emoji}
+                  วันที่ {stageInfo.daysSincePlanted + 1} — {selectedDef.name}
                 </p>
               </div>
             </div>
@@ -729,11 +974,14 @@ function CropCalendarPage() {
           {/* Contextual alerts */}
           {stageInfo.daysLeftInStage <= 7 && nextStage && (
             <Card className="flex items-start gap-3 border-warning/40 bg-warning/10">
-              <span className="text-xl">⚠️</span>
+              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-warning" />
               <div>
-                <p className="text-sm font-semibold">กำลังจะเข้าสู่ช่วงถัดไปใน {stageInfo.daysLeftInStage} วัน</p>
+                <p className="text-sm font-semibold">
+                  กำลังจะเข้าสู่ช่วงถัดไปใน {stageInfo.daysLeftInStage} วัน
+                </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  {nextStage.emoji} <strong>{nextStage.label}</strong> — เตรียม{nextStage.fertilizer ? "ปุ๋ย" : "แผนการดูแล"}ล่วงหน้าได้เลย
+                  <strong>{nextStage.label}</strong> — เตรียม
+                  {nextStage.fertilizer ? "ปุ๋ย" : "แผนการดูแล"}ล่วงหน้าได้เลย
                 </p>
               </div>
             </Card>
@@ -748,11 +996,14 @@ function CropCalendarPage() {
               <span>{stageInfo.stageProgress}%</span>
             </div>
             <div className="h-2 w-full rounded-full bg-muted">
-              <div className="h-2 rounded-full bg-primary transition-all duration-700" style={{ width: `${stageInfo.stageProgress}%` }} />
+              <div
+                className="h-2 rounded-full bg-primary transition-all duration-700"
+                style={{ width: `${stageInfo.stageProgress}%` }}
+              />
             </div>
             {currentStage.fertilizer && (
               <div className="flex items-start gap-2 rounded-xl bg-primary-soft p-3">
-                <span className="text-base">🌿</span>
+                <Leaf className="mt-0.5 size-4 shrink-0 text-primary" />
                 <div>
                   <p className="text-xs font-semibold text-primary">คำแนะนำปุ๋ย</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{currentStage.fertilizer}</p>
@@ -761,7 +1012,7 @@ function CropCalendarPage() {
             )}
             {currentStage.water && (
               <div className="flex items-start gap-2 rounded-xl bg-sky-50/70 p-3">
-                <span className="text-base">💧</span>
+                <Droplets className="mt-0.5 size-4 shrink-0 text-sky-600" />
                 <div>
                   <p className="text-xs font-semibold text-sky-600">การให้น้ำ</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{currentStage.water}</p>
@@ -770,7 +1021,7 @@ function CropCalendarPage() {
             )}
             {currentStage.pestWarning && (
               <div className="flex items-start gap-2 rounded-xl bg-orange-50/70 p-3">
-                <span className="text-base">🐛</span>
+                <Bug className="mt-0.5 size-4 shrink-0 text-orange-600" />
                 <div>
                   <p className="text-xs font-semibold text-orange-600">ระวังศัตรูพืช</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{currentStage.pestWarning}</p>
@@ -779,15 +1030,44 @@ function CropCalendarPage() {
             )}
             {currentStage.satelliteHint && (
               <div className="flex items-start gap-2 rounded-xl bg-violet-50/70 p-3">
-                <span className="text-base">🛰️</span>
+                <Satellite className="mt-0.5 size-4 shrink-0 text-violet-600" />
                 <div>
                   <p className="text-xs font-semibold text-violet-600">บริบทภาพดาวเทียม</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{currentStage.satelliteHint}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {currentStage.satelliteHint}
+                  </p>
                 </div>
               </div>
             )}
-            <button onClick={() => { if (!selectedPlot || !currentStage) return; const taskType = currentStage.water ? "Irrigation" : currentStage.fertilizer ? "Fertilizer" : "Inspection"; dragonfly.addTask({ title: `ตรวจและดูแลตามช่วง ${currentStage.label}`, plot: selectedPlot.id, farmId: selectedPlot.farmId ?? farmFilter, siteId: selectedPlot.siteId, type: taskType, status: "Planned", scheduledFor: getLocalDateKey(), priority: "Normal", origin: "system", createdBy: "ปฏิทินรอบปลูกอัจฉริยะ" }); toast.success("เพิ่มคำแนะนำเป็น Task ในปฏิทินงานแล้ว"); }} className="w-full rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground">ยืนยันและเพิ่มเป็นงานวันนี้</button>
-            <Link to="/calendar" className="block text-center text-xs font-semibold text-primary">เปิดปฏิทินงานเพื่อมอบหมายทีม/คน</Link>
+            <button
+              onClick={() => {
+                if (!selectedPlot || !currentStage) return;
+                const taskType = currentStage.water
+                  ? "Irrigation"
+                  : currentStage.fertilizer
+                    ? "Fertilizer"
+                    : "Inspection";
+                dragonfly.addTask({
+                  title: `ตรวจและดูแลตามช่วง ${currentStage.label}`,
+                  plot: selectedPlot.id,
+                  farmId: selectedPlot.farmId ?? farmFilter,
+                  siteId: selectedPlot.siteId,
+                  type: taskType,
+                  status: "Planned",
+                  scheduledFor: getLocalDateKey(),
+                  priority: "Normal",
+                  origin: "system",
+                  createdBy: "ปฏิทินรอบปลูกอัจฉริยะ",
+                });
+                toast.success("เพิ่มคำแนะนำเป็น Task ในปฏิทินงานแล้ว");
+              }}
+              className="w-full rounded-lg bg-primary py-2.5 text-xs font-semibold text-primary-foreground"
+            >
+              ยืนยันและเพิ่มเป็นงานวันนี้
+            </button>
+            <Link to="/calendar" className="block text-center text-xs font-semibold text-primary">
+              เปิดปฏิทินงานเพื่อมอบหมายทีม/คน
+            </Link>
           </Card>
 
           {/* Full stage timeline */}
@@ -795,7 +1075,9 @@ function CropCalendarPage() {
           <div className="relative space-y-0">
             {selectedDef.stages.map((stage, idx) => {
               const stageDate = stageInfo.stageStartDates[idx];
-              const endDate = stageDate ? new Date(stageDate.getTime() + stage.durationDays * 86_400_000) : null;
+              const endDate = stageDate
+                ? new Date(stageDate.getTime() + stage.durationDays * 86_400_000)
+                : null;
               const isCurrent = idx === stageInfo.currentStageIdx;
               const isPast = idx < stageInfo.currentStageIdx;
               const isFuture = idx > stageInfo.currentStageIdx;
@@ -809,14 +1091,16 @@ function CropCalendarPage() {
                         isCurrent
                           ? "border-primary bg-primary-soft shadow-[0_0_0_4px_var(--color-primary)/15]"
                           : isPast
-                          ? "border-primary/40 bg-primary/10"
-                          : "border-border bg-muted/50"
+                            ? "border-primary/40 bg-primary/10"
+                            : "border-border bg-muted/50"
                       }`}
                     >
-                      {isPast ? "✓" : stage.emoji}
+                      {isPast ? <Check className="size-4" /> : <Sprout className="size-4" />}
                     </div>
                     {idx < selectedDef.stages.length - 1 && (
-                      <div className={`mt-1 w-0.5 flex-1 min-h-8 ${isPast ? "bg-primary/40" : "bg-border"}`} />
+                      <div
+                        className={`mt-1 w-0.5 flex-1 min-h-8 ${isPast ? "bg-primary/40" : "bg-border"}`}
+                      />
                     )}
                   </div>
 
@@ -842,13 +1126,18 @@ function CropCalendarPage() {
                     {isFuture && stageDate && (
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         อีกประมาณ{" "}
-                        {Math.max(0, Math.floor((stageDate.getTime() - today.getTime()) / 86_400_000))} วัน
-                        จะถึงช่วงนี้
+                        {Math.max(
+                          0,
+                          Math.floor((stageDate.getTime() - today.getTime()) / 86_400_000),
+                        )}{" "}
+                        วัน จะถึงช่วงนี้
                       </p>
                     )}
                     {stage.fertilizer && isCurrent && (
                       <p className="mt-1.5 rounded-lg bg-primary-soft px-2 py-1 text-xs text-primary inline-block">
-                        🌿 {stage.fertilizer.slice(0, 50)}{stage.fertilizer.length > 50 ? "…" : ""}
+                        <Leaf className="mr-1 inline size-3.5" />
+                        {stage.fertilizer.slice(0, 50)}
+                        {stage.fertilizer.length > 50 ? "…" : ""}
                       </p>
                     )}
                   </div>
@@ -859,19 +1148,20 @@ function CropCalendarPage() {
 
           {/* Satellite context banner */}
           <Card className="flex items-start gap-3 border-violet-200 bg-violet-50/60">
-            <span className="text-2xl">🛰️</span>
+            <Satellite className="mt-0.5 size-5 shrink-0 text-violet-700" />
             <div>
               <p className="text-sm font-semibold text-violet-700">บริบทภาพดาวเทียมปัจจุบัน</p>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                {currentStage.satelliteHint ?? "ดูภาพดาวเทียมของแปลงในหน้าแปลงของฉันเพื่อเปรียบเทียบกับช่วงการเจริญเติบโต"}
+                {currentStage.satelliteHint ??
+                  "ดูภาพดาวเทียมของแปลงในหน้าแปลงของฉันเพื่อเปรียบเทียบกับช่วงการเจริญเติบโต"}
               </p>
               <p className="mt-2 text-xs font-medium text-violet-600">
                 NDVI คาดการณ์:{" "}
                 {stageInfo.currentStageIdx <= 1
                   ? "ต่ำ–กำลังเพิ่มขึ้น"
                   : stageInfo.currentStageIdx <= 3
-                  ? "สูง"
-                  : "กำลังลดลง"}
+                    ? "สูง"
+                    : "กำลังลดลง"}
               </p>
             </div>
           </Card>

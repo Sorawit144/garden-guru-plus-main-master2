@@ -1,5 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Droplets, Sun, Wind, RefreshCw, Compass } from "lucide-react";
+import {
+  AlertTriangle,
+  Cloud,
+  CloudLightning,
+  CloudRain,
+  CloudSun,
+  Droplets,
+  Sun,
+  Wind,
+  RefreshCw,
+  Compass,
+} from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { AppShell, Badge, Card, SectionTitle } from "@/components/AppShell";
 import { stageAlerts } from "@/lib/farm-data";
@@ -11,7 +22,10 @@ export const Route = createFileRoute("/weather")({
   head: () => ({
     meta: [
       { title: "สภาพอากาศสวน — สวนอัจฉริยะ" },
-      { name: "description", content: "อุณหภูมิ ฝน ความชื้น ลม ค่า UV และการแจ้งเตือนฝนสำหรับพื้นที่สวนของคุณ" },
+      {
+        name: "description",
+        content: "อุณหภูมิ ฝน ความชื้น ลม ค่า UV และการแจ้งเตือนฝนสำหรับพื้นที่สวนของคุณ",
+      },
       { property: "og:title", content: "สภาพอากาศสวน — สวนอัจฉริยะ" },
       { property: "og:description", content: "พยากรณ์อากาศรายชั่วโมงและ 5 วัน พร้อมเตือนฝนตกหนัก" },
     ],
@@ -31,6 +45,27 @@ function parseCoordinates(gpsStr: string) {
   return { lat: 12.6086, lng: 102.1035 }; // พิกัดจันทบุรีตั้งต้น
 }
 
+function WeatherGlyph({
+  condition,
+  className = "size-6",
+}: {
+  condition?: string;
+  className?: string;
+}) {
+  const value = condition?.toLowerCase() ?? "";
+  const Icon =
+    value.includes("พายุ") || value.includes("⛈")
+      ? CloudLightning
+      : value.includes("ฝน") || value.includes("🌧") || value.includes("🌦")
+        ? CloudRain
+        : value.includes("เมฆ") || value.includes("⛅") || value.includes("🌤")
+          ? CloudSun
+          : value.includes("หมอก") || value.includes("🌫") || value.includes("☁")
+            ? Cloud
+            : Sun;
+  return <Icon aria-hidden="true" className={className} />;
+}
+
 function WeatherPage() {
   const dragonfly = useDragonflyData();
   const { plots } = usePlots();
@@ -42,16 +77,35 @@ function WeatherPage() {
   const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number }>();
 
   const selectedSite = dragonfly.state.sites.find((site) => site.id === siteId);
-  const scopedPlots = useMemo(() => siteId === "ทั้งหมด" ? plots : plots.filter((plot) => selectedSite?.plotPrefixes.some((prefix) => plot.id.startsWith(prefix))), [plots, selectedSite, siteId]);
-  const plotOptions = useMemo(() => scopedPlots.map((plot) => ({ value: plot.id, label: `${plot.id} · ${plot.name} · ${plot.crop}` })), [scopedPlots]);
-  const selectedPlot = useMemo(() => plots.find((plot) => plot.id === plotFilter.split(" · ")[0]), [plots, plotFilter]);
+  const scopedPlots = useMemo(
+    () =>
+      siteId === "ทั้งหมด"
+        ? plots
+        : plots.filter((plot) =>
+            selectedSite?.plotPrefixes.some((prefix) => plot.id.startsWith(prefix)),
+          ),
+    [plots, selectedSite, siteId],
+  );
+  const plotOptions = useMemo(
+    () =>
+      scopedPlots.map((plot) => ({
+        value: plot.id,
+        label: `${plot.id} · ${plot.name} · ${plot.crop}`,
+      })),
+    [scopedPlots],
+  );
+  const selectedPlot = useMemo(
+    () => plots.find((plot) => plot.id === plotFilter.split(" · ")[0]),
+    [plots, plotFilter],
+  );
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (position) => setCurrentPosition({ lat: position.coords.latitude, lng: position.coords.longitude }),
+      (position) =>
+        setCurrentPosition({ lat: position.coords.latitude, lng: position.coords.longitude }),
       () => undefined,
-      { enableHighAccuracy: false, timeout: 5_000, maximumAge: 10 * 60_000 }
+      { enableHighAccuracy: false, timeout: 5_000, maximumAge: 10 * 60_000 },
     );
   }, []);
 
@@ -61,7 +115,14 @@ function WeatherPage() {
       setPlotFilter(scopedPlots[0]?.id ?? "");
       return;
     }
-    const closest = scopedPlots.reduce((best, plot) => distanceKm(parseCoordinates(plot.gps), currentPosition) < distanceKm(parseCoordinates(best.gps), currentPosition) ? plot : best, scopedPlots[0]!);
+    const closest = scopedPlots.reduce(
+      (best, plot) =>
+        distanceKm(parseCoordinates(plot.gps), currentPosition) <
+        distanceKm(parseCoordinates(best.gps), currentPosition)
+          ? plot
+          : best,
+      scopedPlots[0]!,
+    );
     setPlotFilter(closest.id);
   }, [currentPosition, plotFilter, scopedPlots]);
 
@@ -101,7 +162,7 @@ function WeatherPage() {
       setLoading(true);
       try {
         const res = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index&hourly=temperature_2m,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`
+          `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,uv_index&hourly=temperature_2m,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`,
         );
         const data = await res.json();
         if (!active) return;
@@ -136,10 +197,11 @@ function WeatherPage() {
         // ดึง 6 ชั่วโมงถัดไป
         const hourly = [];
         const now = new Date();
-        const currentHourIndex = data.hourly.time.findIndex((t: string) => {
-          const d = new Date(t);
-          return d.getHours() === now.getHours() && d.getDate() === now.getDate();
-        }) || 0;
+        const currentHourIndex =
+          data.hourly.time.findIndex((t: string) => {
+            const d = new Date(t);
+            return d.getHours() === now.getHours() && d.getDate() === now.getDate();
+          }) || 0;
 
         for (let i = 0; i < 6; i++) {
           const idx = currentHourIndex + i;
@@ -168,7 +230,11 @@ function WeatherPage() {
               tom.setDate(tom.getDate() + 1);
               return d.getDate() === tom.getDate() && d.getMonth() === tom.getMonth();
             };
-            const dayLabel = isToday ? "วันนี้" : isTomorrow(dateObj) ? "พรุ่งนี้" : days[dateObj.getDay()];
+            const dayLabel = isToday
+              ? "วันนี้"
+              : isTomorrow(dateObj)
+                ? "พรุ่งนี้"
+                : days[dateObj.getDay()];
             const code = data.daily.weather_code[i];
             const info = codeMap[code] || { text: "มีเมฆบางส่วน", emoji: "⛅" };
 
@@ -208,7 +274,14 @@ function WeatherPage() {
 
   if (loading || !weatherData) {
     return (
-      <AppShell title="สภาพอากาศ" subtitle={dragonfly.isDemoMode ? "กำลังโหลดข้อมูลอากาศตัวอย่าง..." : "กำลังโหลดข้อมูลสภาพอากาศจริง..."}>
+      <AppShell
+        title="สภาพอากาศ"
+        subtitle={
+          dragonfly.isDemoMode
+            ? "กำลังโหลดข้อมูลอากาศตัวอย่าง..."
+            : "กำลังโหลดข้อมูลสภาพอากาศจริง..."
+        }
+      >
         <div className="flex h-64 flex-col items-center justify-center gap-2">
           <RefreshCw className="size-8 text-primary animate-spin" />
           <p className="text-xs text-muted-foreground">เชื่อมต่อดาวเทียมตรวจพยากรณ์อากาศ...</p>
@@ -222,14 +295,81 @@ function WeatherPage() {
   return (
     <AppShell
       title="สภาพอากาศ"
-      subtitle={dragonfly.isDemoMode ? `Demo weather · อิงตาม ${activePlotName}` : `อิงตามแปลง: ${activePlotName}`}
+      subtitle={
+        dragonfly.isDemoMode
+          ? `Demo weather · อิงตาม ${activePlotName}`
+          : `อิงตามแปลง: ${activePlotName}`
+      }
     >
       <Card className="space-y-3 border-primary/25 bg-primary-soft/45 p-4">
-        <label className="block text-xs font-semibold text-primary">ฟาร์มที่กำลังดู<select value={dragonfly.activeDashboardFarm.id} onChange={(event) => setActiveFarmAndReset(event.target.value, dragonfly.setActiveDashboardFarm, setSiteId, setPlotFilter)} className="mt-1.5 block w-full rounded-lg border border-primary/20 bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary">{dragonfly.dashboardFarms.map((farm) => <option key={farm.id} value={farm.id}>{farm.name} · {farm.location}</option>)}</select></label>
-        <label className="block text-xs font-semibold text-primary">โซน<select value={siteId} onChange={(event) => { setSiteId(event.target.value); setPlotFilter(""); }} className="mt-1.5 block w-full rounded-lg border border-primary/20 bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"><option value="ทั้งหมด">ทุกโซนในฟาร์ม</option>{dragonfly.state.sites.map((site) => <option key={site.id} value={site.id}>{site.code} · {site.name}</option>)}</select></label>
-        <SearchableSelect label="แปลง/จุดตรวจอากาศ" options={plotOptions} value={plotFilter} onChange={setPlotFilter} allLabel="กำลังเลือกจุดตรวจ" searchPlaceholder="ค้นหารหัส ชื่อแปลง หรือพืช" />
-        <label className="block text-xs font-semibold text-primary">ช่วงพยากรณ์<select value={forecastRange} onChange={(event) => setForecastRange(event.target.value)} className="mt-1.5 block w-full rounded-lg border border-primary/20 bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"><option value="24h">24 ชั่วโมงข้างหน้า</option><option value="5d">5 วันข้างหน้า</option><option value="7d">7 วันข้างหน้า</option></select></label>
-        <p className="text-[11px] text-muted-foreground">{currentPosition ? "เลือกแปลงที่ใกล้หมุดปัจจุบันที่สุดเป็นค่าเริ่มต้น" : "ไม่พบสิทธิ์ตำแหน่ง จึงใช้จุดตรวจหลักของขอบเขตที่เลือก"} · {dragonfly.isDemoMode ? "Demo Mode ใช้ชุดพยากรณ์จำลอง" : "API Mode ใช้พิกัด GPS ของแปลงที่เลือก"}</p>
+        <label className="block text-xs font-semibold text-primary">
+          ฟาร์มที่กำลังดู
+          <select
+            value={dragonfly.activeDashboardFarm.id}
+            onChange={(event) =>
+              setActiveFarmAndReset(
+                event.target.value,
+                dragonfly.setActiveDashboardFarm,
+                setSiteId,
+                setPlotFilter,
+              )
+            }
+            className="mt-1.5 block w-full rounded-lg border border-primary/20 bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+          >
+            {dragonfly.dashboardFarms.map((farm) => (
+              <option key={farm.id} value={farm.id}>
+                {farm.name} · {farm.location}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="block text-xs font-semibold text-primary">
+          โซน
+          <select
+            value={siteId}
+            onChange={(event) => {
+              setSiteId(event.target.value);
+              setPlotFilter("");
+            }}
+            className="mt-1.5 block w-full rounded-lg border border-primary/20 bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+          >
+            <option value="ทั้งหมด">ทุกโซนในฟาร์ม</option>
+            {dragonfly.state.sites.map((site) => (
+              <option key={site.id} value={site.id}>
+                {site.code} · {site.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <SearchableSelect
+          label="แปลง/จุดตรวจอากาศ"
+          options={plotOptions}
+          value={plotFilter}
+          onChange={setPlotFilter}
+          allLabel="กำลังเลือกจุดตรวจ"
+          searchPlaceholder="ค้นหารหัส ชื่อแปลง หรือพืช"
+        />
+        <label className="block text-xs font-semibold text-primary">
+          ช่วงพยากรณ์
+          <select
+            value={forecastRange}
+            onChange={(event) => setForecastRange(event.target.value)}
+            className="mt-1.5 block w-full rounded-lg border border-primary/20 bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+          >
+            <option value="24h">24 ชั่วโมงข้างหน้า</option>
+            <option value="5d">5 วันข้างหน้า</option>
+            <option value="7d">7 วันข้างหน้า</option>
+          </select>
+        </label>
+        <p className="text-[11px] text-muted-foreground">
+          {currentPosition
+            ? "เลือกแปลงที่ใกล้หมุดปัจจุบันที่สุดเป็นค่าเริ่มต้น"
+            : "ไม่พบสิทธิ์ตำแหน่ง จึงใช้จุดตรวจหลักของขอบเขตที่เลือก"}{" "}
+          ·{" "}
+          {dragonfly.isDemoMode
+            ? "Demo Mode ใช้ชุดพยากรณ์จำลอง"
+            : "API Mode ใช้พิกัด GPS ของแปลงที่เลือก"}
+        </p>
       </Card>
       <Card className="bg-primary border-0 text-primary-foreground">
         <div className="flex items-center justify-between">
@@ -237,7 +377,9 @@ function WeatherPage() {
             <p className="text-5xl font-bold">{w.temp}°</p>
             <p className="mt-1 text-sm text-primary-foreground/85">{w.condition}</p>
           </div>
-          <span className="text-6xl">{w.emoji}</span>
+          <span className="rounded-3xl bg-primary-foreground/15 p-4">
+            <WeatherGlyph condition={w.condition} className="size-12 text-primary-foreground" />
+          </span>
         </div>
         <div className="mt-4 grid grid-cols-4 gap-2 text-center">
           {[
@@ -256,17 +398,18 @@ function WeatherPage() {
 
       {w.rainChance > 50 ? (
         <Card className="flex items-start gap-3 border-primary/30 bg-primary/10">
-          <span className="text-xl">⛈️</span>
+          <CloudLightning className="mt-0.5 size-5 shrink-0 text-warning" />
           <div>
             <p className="text-sm font-semibold">แจ้งเตือนฝน</p>
             <p className="text-xs text-muted-foreground">
-              มีโอกาสเกิดฝนตกสูง ({w.rainChance}%) ในพื้นที่สวนของคุณ ควรงดฉีดพ่นเคมีภัณฑ์เพราะจะโดนน้ำฝนชะล้าง
+              มีโอกาสเกิดฝนตกสูง ({w.rainChance}%) ในพื้นที่สวนของคุณ
+              ควรงดฉีดพ่นเคมีภัณฑ์เพราะจะโดนน้ำฝนชะล้าง
             </p>
           </div>
         </Card>
       ) : (
         <Card className="flex items-start gap-3 border-emerald-500/30 bg-emerald-500/10">
-          <span className="text-xl">☀️</span>
+          <Sun className="mt-0.5 size-5 shrink-0 text-warning" />
           <div>
             <p className="text-sm font-semibold">สภาพอากาศเหมาะสม</p>
             <p className="text-xs text-muted-foreground">
@@ -280,7 +423,8 @@ function WeatherPage() {
         <Card className="border-warning/40 bg-warning/10">
           <p className="text-sm font-semibold">ข้อมูลตัวอย่างสำหรับ Demo Mode</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            หน้านี้ไม่เรียก weather API ภายนอกใน Demo Mode เพื่อให้แอปรันได้โดยไม่มี infrastructure หรือ internet dependency
+            หน้านี้ไม่เรียก weather API ภายนอกใน Demo Mode เพื่อให้แอปรันได้โดยไม่มี infrastructure
+            หรือ internet dependency
           </p>
         </Card>
       ) : null}
@@ -290,8 +434,8 @@ function WeatherPage() {
         {stageAlerts.map((a) => (
           <Card key={a.id}>
             <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-lg">
-                {a.icon}
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                <AlertTriangle className="size-5" />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -308,7 +452,9 @@ function WeatherPage() {
         ))}
       </div>
 
-      <SectionTitle>{forecastRange === "24h" ? "รายชั่วโมง 24 ชั่วโมงข้างหน้า" : "รายชั่วโมง"}</SectionTitle>
+      <SectionTitle>
+        {forecastRange === "24h" ? "รายชั่วโมง 24 ชั่วโมงข้างหน้า" : "รายชั่วโมง"}
+      </SectionTitle>
       <Card>
         <div className="flex gap-3 overflow-x-auto pb-1">
           {w.hourly.slice(0, forecastRange === "24h" ? 6 : 6).map((h: any, idx: number) => (
@@ -321,18 +467,22 @@ function WeatherPage() {
         </div>
       </Card>
 
-      <SectionTitle>พยากรณ์ {forecastRange === "24h" ? "วันนี้" : forecastRange === "7d" ? "7 วัน" : "5 วัน"}</SectionTitle>
+      <SectionTitle>
+        พยากรณ์ {forecastRange === "24h" ? "วันนี้" : forecastRange === "7d" ? "7 วัน" : "5 วัน"}
+      </SectionTitle>
       <Card className="space-y-3">
-        {w.daily.slice(0, forecastRange === "24h" ? 1 : forecastRange === "7d" ? 7 : 5).map((d: any, idx: number) => (
-          <div key={idx} className="flex items-center gap-3">
-            <span className="w-20 text-sm">{d.d}</span>
-            <span className="text-lg">{d.icon}</span>
-            <span className="flex-1 text-xs text-primary">ฝน {d.rain}%</span>
-            <span className="text-sm font-medium">
-              {d.hi}° <span className="text-muted-foreground">{d.lo}°</span>
-            </span>
-          </div>
-        ))}
+        {w.daily
+          .slice(0, forecastRange === "24h" ? 1 : forecastRange === "7d" ? 7 : 5)
+          .map((d: any, idx: number) => (
+            <div key={idx} className="flex items-center gap-3">
+              <span className="w-20 text-sm">{d.d}</span>
+              <WeatherGlyph condition={d.icon} className="size-5 text-primary" />
+              <span className="flex-1 text-xs text-primary">ฝน {d.rain}%</span>
+              <span className="text-sm font-medium">
+                {d.hi}° <span className="text-muted-foreground">{d.lo}°</span>
+              </span>
+            </div>
+          ))}
       </Card>
 
       <SectionTitle>ผลต่อการทำสวน</SectionTitle>
@@ -367,14 +517,21 @@ function WeatherPage() {
 }
 
 function distanceKm(a: { lat: number; lng: number }, b: { lat: number; lng: number }) {
-  const toRad = (value: number) => value * Math.PI / 180;
+  const toRad = (value: number) => (value * Math.PI) / 180;
   const dLat = toRad(b.lat - a.lat);
   const dLng = toRad(b.lng - a.lng);
-  const value = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  const value =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
   return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }
 
-function setActiveFarmAndReset(farmId: string, setFarm: (farmId: string) => void, setSite: (siteId: string) => void, setPlot: (plotId: string) => void) {
+function setActiveFarmAndReset(
+  farmId: string,
+  setFarm: (farmId: string) => void,
+  setSite: (siteId: string) => void,
+  setPlot: (plotId: string) => void,
+) {
   setFarm(farmId);
   setSite("ทั้งหมด");
   setPlot("");

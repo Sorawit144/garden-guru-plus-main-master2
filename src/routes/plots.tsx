@@ -26,12 +26,16 @@ import {
 import { toast } from "sonner";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { useDragonflyData } from "@/hooks/useDragonflyData";
+import { FarmIcon } from "@/components/FarmIcon";
 
 export const Route = createFileRoute("/plots")({
   head: () => ({
     meta: [
       { title: "จัดการแปลง — สวนอัจฉริยะ" },
-      { name: "description", content: "เพิ่มแปลงจาก GPS ดูชนิดพืช อายุ จำนวนต้น พื้นที่ และประวัติการดูแล" },
+      {
+        name: "description",
+        content: "เพิ่มแปลงจาก GPS ดูชนิดพืช อายุ จำนวนต้น พื้นที่ และประวัติการดูแล",
+      },
       { property: "og:title", content: "จัดการแปลง — สวนอัจฉริยะ" },
       { property: "og:description", content: "จัดการข้อมูลแปลงเพาะปลูกและประวัติการดูแลทั้งหมด" },
     ],
@@ -74,8 +78,8 @@ function calculatePolygonArea(coords: { lat: number; lng: number }[]): number {
 
   // แปลง Latitude/Longitude เป็นพิกัด X, Y ในหน่วยเมตร (Equirectangular Projection)
   const projected = coords.map((c) => {
-    const x = R * ((c.lng - lon0) * Math.PI / 180) * Math.cos(lat0Rad);
-    const y = R * ((c.lat - lat0) * Math.PI / 180);
+    const x = R * (((c.lng - lon0) * Math.PI) / 180) * Math.cos(lat0Rad);
+    const y = R * (((c.lat - lat0) * Math.PI) / 180);
     return { x, y };
   });
 
@@ -110,7 +114,9 @@ function PolygonPreview({ coords }: { coords: Coord[] }) {
       <div className="flex h-[150px] w-full flex-col items-center justify-center rounded-2xl border border-dashed border-muted-foreground/30 bg-muted/30 text-xs text-muted-foreground p-4 text-center">
         <Compass className="size-8 mb-2 text-muted-foreground/50 animate-bounce" />
         <span>ยังไม่มีการปักหมุดพิกัดมุมแปลง</span>
-        <span className="text-[10px] text-muted-foreground/75 mt-1">กดปุ่ม "ปักหมุดตำแหน่งปัจจุบัน" เพื่อเริ่มวาด</span>
+        <span className="text-[10px] text-muted-foreground/75 mt-1">
+          กดปุ่ม "ปักหมุดตำแหน่งปัจจุบัน" เพื่อเริ่มวาด
+        </span>
       </div>
     );
   }
@@ -122,8 +128,8 @@ function PolygonPreview({ coords }: { coords: Coord[] }) {
 
   // โพรเจกต์จุดทั้งหมด
   const projected = coords.map((c) => {
-    const x = R * ((c.lng - lon0) * Math.PI / 180) * Math.cos(lat0Rad);
-    const y = R * ((c.lat - lat0) * Math.PI / 180);
+    const x = R * (((c.lng - lon0) * Math.PI) / 180) * Math.cos(lat0Rad);
+    const y = R * (((c.lat - lat0) * Math.PI) / 180);
     return { x, y };
   });
 
@@ -154,7 +160,7 @@ function PolygonPreview({ coords }: { coords: Coord[] }) {
     <div className="relative overflow-hidden rounded-2xl border border-border bg-muted/40 p-2">
       <div className="absolute top-2 left-2 z-10 flex gap-1 items-center bg-background/90 backdrop-blur px-1.5 py-0.5 rounded border border-border text-[9px] font-semibold text-muted-foreground">
         <Layers className="size-2.5 text-primary" />
-        แผนที่ขอบเขตแปลง (Scale: 1:{(1/scale).toFixed(0)})
+        แผนที่ขอบเขตแปลง (Scale: 1:{(1 / scale).toFixed(0)})
       </div>
       <svg width="100%" height={height} className="overflow-visible bg-grid">
         {/* วาดรูปแปลงปิด */}
@@ -199,7 +205,9 @@ function PolygonPreview({ coords }: { coords: Coord[] }) {
         ))}
       </svg>
       <div className="mt-1 flex justify-between text-[9px] text-muted-foreground px-1">
-        <span>ขนาดกว้าง-ยาว: {Math.round(dx)} ม. × {Math.round(dy)} ม.</span>
+        <span>
+          ขนาดกว้าง-ยาว: {Math.round(dx)} ม. × {Math.round(dy)} ม.
+        </span>
         <span>จุดปักหมุดทั้งหมด: {coords.length} จุด</span>
       </div>
     </div>
@@ -289,16 +297,13 @@ function SatelliteMapDrawer({ points, setPoints, centerPoint }: SatelliteMapDraw
       {
         attribution: "Tiles &copy; Esri",
         maxZoom: 19,
-      }
+      },
     ).addTo(map);
 
     // เมื่อผู้ใช้แตะแผนที่
     map.on("click", (e: any) => {
       const { lat, lng } = e.latlng;
-      setPoints((prev) => [
-        ...prev,
-        { lat, lng, acc: 1, timestamp: Date.now() },
-      ]);
+      setPoints((prev) => [...prev, { lat, lng, acc: 1, timestamp: Date.now() }]);
     });
 
     return () => {
@@ -406,7 +411,7 @@ function SatelliteMapDrawer({ points, setPoints, centerPoint }: SatelliteMapDraw
       ) : (
         <div className="relative">
           <div id="satellite-map" className="h-[280px] w-full" />
-          
+
           {/* Overlay Map Controls */}
           <div className="absolute bottom-4 right-4 z-[400] flex flex-col gap-2">
             <button
@@ -440,14 +445,24 @@ function SatelliteMapDrawer({ points, setPoints, centerPoint }: SatelliteMapDraw
 function PlotsPage() {
   const { plots, addPlot, isLoaded } = usePlots();
   const dragonfly = useDragonflyData();
-  const isOrganizationEmployee = dragonfly.workspaceContext === "organization" && dragonfly.persona.id === "employee";
-  const employeeWorker = dragonfly.state.workers.find((worker) => worker.id === "W-004") ?? dragonfly.state.workers[0];
-  const employeePlotIds = useMemo(() => new Set([
-    ...(employeeWorker?.plot ? [employeeWorker.plot] : []),
-    ...dragonfly.state.tasks
-      .filter((task) => task.assignedWorkerId === employeeWorker?.id || (!task.assignedWorkerId && task.team === employeeWorker?.crew))
-      .map((task) => task.plot),
-  ]), [dragonfly.state.tasks, employeeWorker?.crew, employeeWorker?.id, employeeWorker?.plot]);
+  const isOrganizationEmployee =
+    dragonfly.workspaceContext === "organization" && dragonfly.persona.id === "employee";
+  const employeeWorker =
+    dragonfly.state.workers.find((worker) => worker.id === "W-004") ?? dragonfly.state.workers[0];
+  const employeePlotIds = useMemo(
+    () =>
+      new Set([
+        ...(employeeWorker?.plot ? [employeeWorker.plot] : []),
+        ...dragonfly.state.tasks
+          .filter(
+            (task) =>
+              task.assignedWorkerId === employeeWorker?.id ||
+              (!task.assignedWorkerId && task.team === employeeWorker?.crew),
+          )
+          .map((task) => task.plot),
+      ]),
+    [dragonfly.state.tasks, employeeWorker?.crew, employeeWorker?.id, employeeWorker?.plot],
+  );
   const [recentPlotName, setRecentPlotName] = useState<string | null>(null);
   const [openDetail, setOpenDetail] = useState<string | null>(null);
   const [cropFilter, setCropFilter] = useState("ทั้งหมด");
@@ -489,32 +504,65 @@ function PlotsPage() {
   const [treeCount, setTreeCount] = useState("100");
 
   const selectedSite = dragonfly.state.sites.find((site) => site.id === siteFilter);
-  const farmSites = useMemo(() => dragonfly.state.sites.filter((site) =>
-    (site.farmId ?? "FARM-PRIMARY") === farmFilter &&
-    (!isOrganizationEmployee || plots.some((plot) => employeePlotIds.has(plot.id) && (plot.siteId === site.id || site.plotPrefixes.some((prefix) => plot.id.startsWith(prefix)))))
-  ), [dragonfly.state.sites, employeePlotIds, farmFilter, isOrganizationEmployee, plots]);
+  const farmSites = useMemo(
+    () =>
+      dragonfly.state.sites.filter(
+        (site) =>
+          (site.farmId ?? "FARM-PRIMARY") === farmFilter &&
+          (!isOrganizationEmployee ||
+            plots.some(
+              (plot) =>
+                employeePlotIds.has(plot.id) &&
+                (plot.siteId === site.id ||
+                  site.plotPrefixes.some((prefix) => plot.id.startsWith(prefix))),
+            )),
+      ),
+    [dragonfly.state.sites, employeePlotIds, farmFilter, isOrganizationEmployee, plots],
+  );
   const farmPlots = useMemo(
-    () => plots.filter((plot) => (plot.farmId ?? "FARM-PRIMARY") === farmFilter && (!isOrganizationEmployee || employeePlotIds.has(plot.id))),
-    [plots, employeePlotIds, farmFilter, isOrganizationEmployee]
+    () =>
+      plots.filter(
+        (plot) =>
+          (plot.farmId ?? "FARM-PRIMARY") === farmFilter &&
+          (!isOrganizationEmployee || employeePlotIds.has(plot.id)),
+      ),
+    [plots, employeePlotIds, farmFilter, isOrganizationEmployee],
   );
-  const visibleFarms = useMemo(() => isOrganizationEmployee
-    ? dragonfly.dashboardFarms.filter((farm) => plots.some((plot) => employeePlotIds.has(plot.id) && (plot.farmId ?? "FARM-PRIMARY") === farm.id))
-    : dragonfly.dashboardFarms,
-  [dragonfly.dashboardFarms, employeePlotIds, isOrganizationEmployee, plots]);
+  const visibleFarms = useMemo(
+    () =>
+      isOrganizationEmployee
+        ? dragonfly.dashboardFarms.filter((farm) =>
+            plots.some(
+              (plot) => employeePlotIds.has(plot.id) && (plot.farmId ?? "FARM-PRIMARY") === farm.id,
+            ),
+          )
+        : dragonfly.dashboardFarms,
+    [dragonfly.dashboardFarms, employeePlotIds, isOrganizationEmployee, plots],
+  );
   const plotsInScope = useMemo(
-    () => siteFilter === "ทั้งหมด"
-      ? farmPlots
-      : farmPlots.filter((plot) => plot.siteId === siteFilter || (!plot.siteId && selectedSite?.plotPrefixes.some((prefix) => plot.id.startsWith(prefix)))),
-    [farmPlots, selectedSite, siteFilter]
+    () =>
+      siteFilter === "ทั้งหมด"
+        ? farmPlots
+        : farmPlots.filter(
+            (plot) =>
+              plot.siteId === siteFilter ||
+              (!plot.siteId &&
+                selectedSite?.plotPrefixes.some((prefix) => plot.id.startsWith(prefix))),
+          ),
+    [farmPlots, selectedSite, siteFilter],
   );
-  const cropOptions = useMemo(() => ["ทั้งหมด", ...Array.from(new Set(plotsInScope.map((plot) => plot.crop)))], [plotsInScope]);
+  const cropOptions = useMemo(
+    () => ["ทั้งหมด", ...Array.from(new Set(plotsInScope.map((plot) => plot.crop)))],
+    [plotsInScope],
+  );
   const filteredPlots = useMemo(
-    () => plotsInScope.filter((plot) => {
-      const cropOk = cropFilter === "ทั้งหมด" || plot.crop === cropFilter;
-      const health = plot.health > 80 ? "สมบูรณ์" : plot.health > 65 ? "เฝ้าระวัง" : "ต้องดูแล";
-      return cropOk && (healthFilter === "ทั้งหมด" || health === healthFilter);
-    }),
-    [plotsInScope, cropFilter, healthFilter]
+    () =>
+      plotsInScope.filter((plot) => {
+        const cropOk = cropFilter === "ทั้งหมด" || plot.crop === cropFilter;
+        const health = plot.health > 80 ? "สมบูรณ์" : plot.health > 65 ? "เฝ้าระวัง" : "ต้องดูแล";
+        return cropOk && (healthFilter === "ทั้งหมด" || health === healthFilter);
+      }),
+    [plotsInScope, cropFilter, healthFilter],
   );
 
   useEffect(() => {
@@ -558,7 +606,7 @@ function PlotsPage() {
         enableHighAccuracy: true,
         timeout: 8000,
         maximumAge: 1000,
-      }
+      },
     );
 
     return () => {
@@ -589,12 +637,26 @@ function PlotsPage() {
 
   const plantingRecommendations = useMemo(() => {
     const lat = currentLocation?.lat ?? gpsCoords[0]?.lat ?? singlePoint?.lat ?? 12.6086;
-    const areaHint = thaiArea.totalRai >= 5 ? "พื้นที่ขนาดกลางขึ้นไป เหมาะกับการวางระบบน้ำและจัดการเป็นรอบ" : "พื้นที่ขนาดเล็กถึงกลาง เหมาะเริ่มจากพืชที่ดูแลเป็นจุดได้";
-    const climateHint = lat < 14 ? "พิกัดอยู่ในบริบทอากาศร้อนชื้นของชุดข้อมูลตัวอย่าง" : "พิกัดอยู่ในบริบทอากาศร้อนของชุดข้อมูลตัวอย่าง";
+    const areaHint =
+      thaiArea.totalRai >= 5
+        ? "พื้นที่ขนาดกลางขึ้นไป เหมาะกับการวางระบบน้ำและจัดการเป็นรอบ"
+        : "พื้นที่ขนาดเล็กถึงกลาง เหมาะเริ่มจากพืชที่ดูแลเป็นจุดได้";
+    const climateHint =
+      lat < 14
+        ? "พิกัดอยู่ในบริบทอากาศร้อนชื้นของชุดข้อมูลตัวอย่าง"
+        : "พิกัดอยู่ในบริบทอากาศร้อนของชุดข้อมูลตัวอย่าง";
     return [
       { name: "ทุเรียนหมอนทอง", emoji: "🥭", reason: `${climateHint}; ${areaHint}` },
-      { name: "มังคุด", emoji: "🍇", reason: "ใช้เป็นพืชร่วมสวนได้ในบริบทสวนผลไม้ร้อนชื้น และช่วยกระจายช่วงเก็บเกี่ยว" },
-      { name: "มะพร้าวน้ำหอม", emoji: "🥥", reason: "เป็นทางเลือกสำหรับพื้นที่ที่ต้องการพืชยืนต้นและจัดการน้ำสม่ำเสมอ" },
+      {
+        name: "มังคุด",
+        emoji: "🍇",
+        reason: "ใช้เป็นพืชร่วมสวนได้ในบริบทสวนผลไม้ร้อนชื้น และช่วยกระจายช่วงเก็บเกี่ยว",
+      },
+      {
+        name: "มะพร้าวน้ำหอม",
+        emoji: "🥥",
+        reason: "เป็นทางเลือกสำหรับพื้นที่ที่ต้องการพืชยืนต้นและจัดการน้ำสม่ำเสมอ",
+      },
     ];
   }, [currentLocation?.lat, gpsCoords, singlePoint?.lat, thaiArea.totalRai]);
 
@@ -694,25 +756,43 @@ function PlotsPage() {
     const selectedFarmId = farmMode === "new" ? newFarmId : farmFilter;
     const newSiteId = `SITE-${Date.now()}`;
     const selectedSiteId = siteMode === "new" ? newSiteId : newPlotSiteId || undefined;
-    addPlot({
-      farmId: selectedFarmId,
-      siteId: selectedSiteId,
-      name: plotName,
-      crop: cropType,
-      emoji: cropEmoji,
-      ageMonths: totalAgeMonths,
-      trees: parseInt(treeCount) || 0,
-      area: parseFloat(thaiArea.totalRai.toFixed(2)) || 0,
-      gps: gpsStr,
-    }, {
-      newFarm: farmMode === "new" ? { id: newFarmId, name: newFarmName.trim(), location: newFarmLocation.trim() || "ยังไม่ระบุพื้นที่" } : undefined,
-      newSite: siteMode === "new" ? { id: newSiteId, farmId: selectedFarmId, code: `Z${String(Date.now()).slice(-4)}`, name: newSiteName.trim() } : undefined,
-    });
+    addPlot(
+      {
+        farmId: selectedFarmId,
+        siteId: selectedSiteId,
+        name: plotName,
+        crop: cropType,
+        emoji: cropEmoji,
+        ageMonths: totalAgeMonths,
+        trees: parseInt(treeCount) || 0,
+        area: parseFloat(thaiArea.totalRai.toFixed(2)) || 0,
+        gps: gpsStr,
+      },
+      {
+        newFarm:
+          farmMode === "new"
+            ? {
+                id: newFarmId,
+                name: newFarmName.trim(),
+                location: newFarmLocation.trim() || "ยังไม่ระบุพื้นที่",
+              }
+            : undefined,
+        newSite:
+          siteMode === "new"
+            ? {
+                id: newSiteId,
+                farmId: selectedFarmId,
+                code: `Z${String(Date.now()).slice(-4)}`,
+                name: newSiteName.trim(),
+              }
+            : undefined,
+      },
+    );
 
     setRecentPlotName(plotName);
     toast.success("บันทึกข้อมูลแปลงพืชใหม่สำเร็จ! 🎉");
     setIsOpen(false);
-    
+
     // รีเซ็ตฟอร์ม
     setStep(1);
     setMethod(null);
@@ -752,7 +832,8 @@ function PlotsPage() {
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold text-primary">สร้างแปลง {recentPlotName} แล้ว</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                ระบบสร้างคำแนะนำพืชที่ควรปลูกและ next action ให้แล้ว โดยมีป้ายบอกว่าเป็น “ประมาณการจาก AI” หรือข้อมูลจากระบบอย่างชัดเจน
+                ระบบสร้างคำแนะนำพืชที่ควรปลูกและ next action ให้แล้ว โดยมีป้ายบอกว่าเป็น
+                “ประมาณการจาก AI” หรือข้อมูลจากระบบอย่างชัดเจน
               </p>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Link
@@ -773,39 +854,91 @@ function PlotsPage() {
         </Card>
       ) : null}
 
-      {isOrganizationEmployee ? <Card className="border-primary/25 bg-primary-soft/45"><p className="text-sm font-semibold text-primary">สิทธิ์พนักงานในองค์กร</p><p className="mt-1 text-xs text-muted-foreground">ดูสุขภาพ ประวัติ และงานของแปลงที่ได้รับมอบหมายได้ แต่เพิ่ม ลบ หรือเปลี่ยนโครงสร้างแปลงไม่ได้</p></Card> : <button
-        data-tour="plots-add-gps"
-        onClick={() => {
-          setNewPlotSiteId(siteFilter === "ทั้งหมด" ? dragonfly.state.sites[0]?.id ?? "" : siteFilter);
-          setIsOpen(true);
-        }}
-        className="bg-primary flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-card)] transition-transform active:scale-[0.98] hover:opacity-95"
-      >
-        <Plus className="size-4" /> เพิ่มแปลงจากตำแหน่ง GPS
-      </button>}
+      {isOrganizationEmployee ? (
+        <Card className="border-primary/25 bg-primary-soft/45">
+          <p className="text-sm font-semibold text-primary">สิทธิ์พนักงานในองค์กร</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            ดูสุขภาพ ประวัติ และงานของแปลงที่ได้รับมอบหมายได้ แต่เพิ่ม ลบ
+            หรือเปลี่ยนโครงสร้างแปลงไม่ได้
+          </p>
+        </Card>
+      ) : (
+        <button
+          data-tour="plots-add-gps"
+          onClick={() => {
+            setNewPlotSiteId(
+              siteFilter === "ทั้งหมด" ? (dragonfly.state.sites[0]?.id ?? "") : siteFilter,
+            );
+            setIsOpen(true);
+          }}
+          className="bg-primary flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-card)] transition-transform active:scale-[0.98] hover:opacity-95"
+        >
+          <Plus className="size-4" /> เพิ่มแปลงจากตำแหน่ง GPS
+        </button>
+      )}
 
       <Card className="space-y-3">
         <label className="block text-xs font-medium text-muted-foreground">
           ฟาร์ม
-          <select value={farmFilter} onChange={(event) => { setFarmFilter(event.target.value); setSiteFilter("ทั้งหมด"); setCropFilter("ทั้งหมด"); }} className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary">
-            {visibleFarms.map((farm) => <option key={farm.id} value={farm.id}>{farm.name} · {farm.location}</option>)}
+          <select
+            value={farmFilter}
+            onChange={(event) => {
+              setFarmFilter(event.target.value);
+              setSiteFilter("ทั้งหมด");
+              setCropFilter("ทั้งหมด");
+            }}
+            className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+          >
+            {visibleFarms.map((farm) => (
+              <option key={farm.id} value={farm.id}>
+                {farm.name} · {farm.location}
+              </option>
+            ))}
           </select>
         </label>
         <label className="block text-xs font-medium text-muted-foreground">
           โซน
-          <select value={siteFilter} onChange={(event) => { setSiteFilter(event.target.value); setCropFilter("ทั้งหมด"); }} className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary">
+          <select
+            value={siteFilter}
+            onChange={(event) => {
+              setSiteFilter(event.target.value);
+              setCropFilter("ทั้งหมด");
+            }}
+            className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+          >
             <option value="ทั้งหมด">ทุกโซนในฟาร์ม</option>
-          {farmSites.map((site) => <option key={site.id} value={site.id}>{site.code} · {site.name}</option>)}
+            {farmSites.map((site) => (
+              <option key={site.id} value={site.id}>
+                {site.code} · {site.name}
+              </option>
+            ))}
           </select>
         </label>
-        <SearchableSelect label="ชนิดพืช" options={cropOptions} value={cropFilter} onChange={setCropFilter} allLabel="พืชทุกชนิด" searchPlaceholder="ค้นหาชนิดหรือพันธุ์พืช" />
+        <SearchableSelect
+          label="ชนิดพืช"
+          options={cropOptions}
+          value={cropFilter}
+          onChange={setCropFilter}
+          allLabel="พืชทุกชนิด"
+          searchPlaceholder="ค้นหาชนิดหรือพันธุ์พืช"
+        />
         <div>
           <p className="mb-1.5 text-xs font-medium text-muted-foreground">สถานะสุขภาพ</p>
           <div className="grid grid-cols-2 gap-2">
-            {["ทั้งหมด", "สมบูรณ์", "เฝ้าระวัง", "ต้องดูแล"].map((health) => <button key={health} onClick={() => setHealthFilter(health)} className={`min-h-10 rounded-lg border px-2 py-2 text-xs font-semibold ${healthFilter === health ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>{health}</button>)}
+            {["ทั้งหมด", "สมบูรณ์", "เฝ้าระวัง", "ต้องดูแล"].map((health) => (
+              <button
+                key={health}
+                onClick={() => setHealthFilter(health)}
+                className={`min-h-10 rounded-lg border px-2 py-2 text-xs font-semibold ${healthFilter === health ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+              >
+                {health}
+              </button>
+            ))}
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">กำลังแสดง {filteredPlots.length} จาก {plotsInScope.length} แปลงในขอบเขตที่เลือก</p>
+        <p className="text-xs text-muted-foreground">
+          กำลังแสดง {filteredPlots.length} จาก {plotsInScope.length} แปลงในขอบเขตที่เลือก
+        </p>
       </Card>
 
       <div className="space-y-4">
@@ -813,7 +946,7 @@ function PlotsPage() {
           <Card key={p.id}>
             <div className="flex items-start gap-3">
               <span className="flex size-12 items-center justify-center rounded-2xl bg-primary-soft text-2xl">
-                {p.emoji}
+                <FarmIcon crop={p.crop} className="size-5" />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-foreground">{p.name}</p>
@@ -864,13 +997,48 @@ function PlotsPage() {
 
             {openDetail === p.id ? (
               <div className="mt-3 space-y-3 animate-in fade-in slide-in-from-left-2 duration-200">
-                <div className="flex items-center justify-between gap-2"><div><p className="text-xs font-semibold text-foreground">ประวัติการดูแลจากงานที่ปิดแล้ว</p><p className="mt-0.5 text-[10px] text-muted-foreground">งานรายวันและ Work Order คือแหล่งข้อมูลกลางของประวัติแปลง</p></div><Link to="/calendar" className="shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground">สร้างงานดูแล</Link></div>
-                {p.history.length ? <ul className="space-y-3 border-l-2 border-primary pl-3">{p.history.map((h, i) => <li key={i} className="text-left"><p className="text-xs font-semibold">{h.action} <span className="font-normal text-muted-foreground">· {h.date}</span></p><p className="text-xs text-muted-foreground mt-0.5">{h.note}</p></li>)}</ul> : <p className="text-xs text-muted-foreground">ยังไม่มีประวัติการดูแล</p>}
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">
+                      ประวัติการดูแลจากงานที่ปิดแล้ว
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground">
+                      งานรายวันและ Work Order คือแหล่งข้อมูลกลางของประวัติแปลง
+                    </p>
+                  </div>
+                  <Link
+                    to="/calendar"
+                    className="shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
+                  >
+                    สร้างงานดูแล
+                  </Link>
+                </div>
+                {p.history.length ? (
+                  <ul className="space-y-3 border-l-2 border-primary pl-3">
+                    {p.history.map((h, i) => (
+                      <li key={i} className="text-left">
+                        <p className="text-xs font-semibold">
+                          {h.action}{" "}
+                          <span className="font-normal text-muted-foreground">· {h.date}</span>
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{h.note}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-xs text-muted-foreground">ยังไม่มีประวัติการดูแล</p>
+                )}
               </div>
             ) : null}
           </Card>
         ))}
-        {isLoaded && filteredPlots.length === 0 ? <Card className="py-8 text-center text-sm text-muted-foreground">{dragonfly.workspaceContext === "personal" && farmPlots.length === 0 ? "สวนส่วนตัวยังไม่มีแปลง กด “เพิ่มแปลงจากตำแหน่ง GPS” เพื่อเริ่มต้น" : "ไม่พบแปลงที่ตรงกับตัวกรอง เลือก “ทั้งหมด” เพื่อดูทุกแปลง"}</Card> : null}
+        {isLoaded && filteredPlots.length === 0 ? (
+          <Card className="py-8 text-center text-sm text-muted-foreground">
+            {dragonfly.workspaceContext === "personal" && farmPlots.length === 0
+              ? "สวนส่วนตัวยังไม่มีแปลง กด “เพิ่มแปลงจากตำแหน่ง GPS” เพื่อเริ่มต้น"
+              : "ไม่พบแปลงที่ตรงกับตัวกรอง เลือก “ทั้งหมด” เพื่อดูทุกแปลง"}
+          </Card>
+        ) : null}
       </div>
 
       {/* dialog สำหรับบันทึกพิกัดแปลง */}
@@ -882,7 +1050,12 @@ function PlotsPage() {
               เพิ่มแปลงเพาะปลูกใหม่ด้วย GPS
             </DialogTitle>
             <DialogDescription className="text-center text-xs">
-              ขั้นตอนที่ {step} จาก 3: {step === 1 ? "เลือกวิธีบันทึก" : step === 2 ? "วัดพิกัดและขนาดพื้นที่" : "ข้อมูลเพาะปลูก"}
+              ขั้นตอนที่ {step} จาก 3:{" "}
+              {step === 1
+                ? "เลือกวิธีบันทึก"
+                : step === 2
+                  ? "วัดพิกัดและขนาดพื้นที่"
+                  : "ข้อมูลเพาะปลูก"}
             </DialogDescription>
           </DialogHeader>
 
@@ -906,7 +1079,8 @@ function PlotsPage() {
                 <div>
                   <p className="text-sm font-bold text-foreground">วาดขอบเขตบนแผนที่ดาวเทียม</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    ค้นหาแปลงเพาะปลูกของคุณบนภาพดาวเทียม แล้วจิ้มหน้าจอเพื่อวาดและลากปรับปรุงขนาดแปลงแบบเรียลไทม์
+                    ค้นหาแปลงเพาะปลูกของคุณบนภาพดาวเทียม
+                    แล้วจิ้มหน้าจอเพื่อวาดและลากปรับปรุงขนาดแปลงแบบเรียลไทม์
                   </p>
                 </div>
               </button>
@@ -924,7 +1098,8 @@ function PlotsPage() {
                 <div>
                   <p className="text-sm font-bold text-foreground">เดินปักหมุดรอบมุมแปลง</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    เดินรอบแปลงแล้วกดปุ่มปักพิกัดตามมุมแปลงจริง ระบบจะวาดแผนที่รูปเหลี่ยมและคำนวณพื้นที่เป็นไร่ให้โดยอัตโนมัติ
+                    เดินรอบแปลงแล้วกดปุ่มปักพิกัดตามมุมแปลงจริง
+                    ระบบจะวาดแผนที่รูปเหลี่ยมและคำนวณพื้นที่เป็นไร่ให้โดยอัตโนมัติ
                   </p>
                 </div>
               </button>
@@ -940,9 +1115,12 @@ function PlotsPage() {
                   <MapPin className="size-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-bold text-foreground">บันทึกจากจุดปัจจุบัน (ปักหมุดตรงกลาง)</p>
+                  <p className="text-sm font-bold text-foreground">
+                    บันทึกจากจุดปัจจุบัน (ปักหมุดตรงกลาง)
+                  </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    ใช้พิกัดตำแหน่งปัจจุบันที่คุณยืนอยู่เป็นพิกัดอ้างอิงแปลง และกรอกตัวเลขพื้นที่แปลงหน่วย ไร่-งาน-ตารางวา ด้วยตนเอง
+                    ใช้พิกัดตำแหน่งปัจจุบันที่คุณยืนอยู่เป็นพิกัดอ้างอิงแปลง
+                    และกรอกตัวเลขพื้นที่แปลงหน่วย ไร่-งาน-ตารางวา ด้วยตนเอง
                   </p>
                 </div>
               </button>
@@ -968,9 +1146,7 @@ function PlotsPage() {
                     </p>
                   </div>
                 </div>
-                {isWatching && (
-                  <RefreshCw className="size-4 text-primary animate-spin shrink-0" />
-                )}
+                {isWatching && <RefreshCw className="size-4 text-primary animate-spin shrink-0" />}
               </div>
 
               {gpsError && (
@@ -989,11 +1165,14 @@ function PlotsPage() {
                     centerPoint={currentLocation}
                   />
                   <p className="text-[10px] text-muted-foreground text-center">
-                    * แตะบนแผนที่เพื่อเพิ่มปักหมุดมุมแปลง, ลาก Marker ย้ายเพื่อปรับแต่งมุม หรือจิ้มลบด้านล่าง
+                    * แตะบนแผนที่เพื่อเพิ่มปักหมุดมุมแปลง, ลาก Marker ย้ายเพื่อปรับแต่งมุม
+                    หรือจิ้มลบด้านล่าง
                   </p>
 
                   <div className="flex justify-between items-center bg-muted/30 p-2 rounded-xl border border-border">
-                    <span className="text-[10px] text-muted-foreground">จุดปักหมุด: {gpsCoords.length} จุด</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      จุดปักหมุด: {gpsCoords.length} จุด
+                    </span>
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
@@ -1018,7 +1197,9 @@ function PlotsPage() {
 
                   {/* แสดงผลการคำนวณพื้นที่แบบสดๆ */}
                   <div className="rounded-2xl border border-primary/30 bg-primary-soft/30 p-3.5 text-center">
-                    <p className="text-[11px] text-primary font-medium">คำนวณขนาดพื้นที่รวมบนภาพดาวเทียม</p>
+                    <p className="text-[11px] text-primary font-medium">
+                      คำนวณขนาดพื้นที่รวมบนภาพดาวเทียม
+                    </p>
                     <div className="mt-1 flex items-baseline justify-center gap-1 text-primary">
                       <span className="text-2xl font-black">{thaiArea.rai}</span>
                       <span className="text-xs font-semibold mr-2">ไร่</span>
@@ -1033,7 +1214,8 @@ function PlotsPage() {
                       </p>
                     ) : (
                       <p className="text-[9px] text-warning mt-1 flex items-center justify-center gap-1">
-                        <BadgeInfo className="size-3" /> แตะบนแผนที่ดาวเทียมอย่างน้อย 3 จุดเพื่อเริ่มวาดขอบเขตแปลง
+                        <BadgeInfo className="size-3" /> แตะบนแผนที่ดาวเทียมอย่างน้อย 3
+                        จุดเพื่อเริ่มวาดขอบเขตแปลง
                       </p>
                     )}
                   </div>
@@ -1067,7 +1249,9 @@ function PlotsPage() {
 
                   {gpsCoords.length > 0 && (
                     <div className="flex justify-between items-center bg-muted/30 p-2 rounded-xl border border-border">
-                      <span className="text-[10px] text-muted-foreground">จุดปักหมุดล่าสุด: P{gpsCoords.length}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        จุดปักหมุดล่าสุด: P{gpsCoords.length}
+                      </span>
                       <button
                         onClick={handleResetWalk}
                         className="text-[10px] text-destructive hover:underline flex items-center gap-0.5 cursor-pointer"
@@ -1094,7 +1278,8 @@ function PlotsPage() {
                       </p>
                     ) : (
                       <p className="text-[9px] text-warning mt-1 flex items-center justify-center gap-1">
-                        <BadgeInfo className="size-3" /> ต้องปักหมุดอย่างน้อย 3 จุดเพื่อเริ่มคำนวณพื้นที่ (มีแล้ว {gpsCoords.length})
+                        <BadgeInfo className="size-3" /> ต้องปักหมุดอย่างน้อย 3
+                        จุดเพื่อเริ่มคำนวณพื้นที่ (มีแล้ว {gpsCoords.length})
                       </p>
                     )}
                   </div>
@@ -1129,7 +1314,9 @@ function PlotsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-foreground">ระบุขนาดพื้นที่ของแปลง</label>
+                    <label className="text-xs font-bold text-foreground">
+                      ระบุขนาดพื้นที่ของแปลง
+                    </label>
                     <div className="grid grid-cols-3 gap-2">
                       <div>
                         <div className="relative">
@@ -1140,7 +1327,9 @@ function PlotsPage() {
                             onChange={(e) => setManualRai(e.target.value)}
                             className="w-full text-right pr-6 py-2 border border-border rounded-xl text-sm focus:outline-primary"
                           />
-                          <span className="absolute right-2 top-2 text-xs text-muted-foreground">ไร่</span>
+                          <span className="absolute right-2 top-2 text-xs text-muted-foreground">
+                            ไร่
+                          </span>
                         </div>
                       </div>
                       <div>
@@ -1153,7 +1342,9 @@ function PlotsPage() {
                             onChange={(e) => setManualNgan(e.target.value)}
                             className="w-full text-right pr-8 py-2 border border-border rounded-xl text-sm focus:outline-primary"
                           />
-                          <span className="absolute right-2 top-2 text-xs text-muted-foreground">งาน</span>
+                          <span className="absolute right-2 top-2 text-xs text-muted-foreground">
+                            งาน
+                          </span>
                         </div>
                       </div>
                       <div>
@@ -1167,7 +1358,9 @@ function PlotsPage() {
                             onChange={(e) => setManualWa(e.target.value)}
                             className="w-full text-right pr-8 py-2 border border-border rounded-xl text-sm focus:outline-primary"
                           />
-                          <span className="absolute right-2 top-2 text-xs text-muted-foreground">ตร.ว.</span>
+                          <span className="absolute right-2 top-2 text-xs text-muted-foreground">
+                            ตร.ว.
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1205,25 +1398,112 @@ function PlotsPage() {
             <div className="space-y-4 py-1">
               <div className="rounded-xl border border-primary/20 bg-primary-soft/35 p-3">
                 <p className="text-xs font-bold text-foreground">ที่ตั้งในโครงสร้างสวน</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">ผูกฟาร์มและโซน เพื่อกรองงาน อากาศ รายงาน และสิทธิ์ต่อไป</p>
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  ผูกฟาร์มและโซน เพื่อกรองงาน อากาศ รายงาน และสิทธิ์ต่อไป
+                </p>
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => setFarmMode("existing")} className={`rounded-lg border px-2 py-2 text-xs font-semibold ${farmMode === "existing" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>เลือกสวนที่มีอยู่</button>
-                  <button type="button" onClick={() => { setFarmMode("new"); setSiteMode("new"); }} className={`rounded-lg border px-2 py-2 text-xs font-semibold ${farmMode === "new" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>สร้างสวนใหม่</button>
+                  <button
+                    type="button"
+                    onClick={() => setFarmMode("existing")}
+                    className={`rounded-lg border px-2 py-2 text-xs font-semibold ${farmMode === "existing" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                  >
+                    เลือกสวนที่มีอยู่
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFarmMode("new");
+                      setSiteMode("new");
+                    }}
+                    className={`rounded-lg border px-2 py-2 text-xs font-semibold ${farmMode === "new" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                  >
+                    สร้างสวนใหม่
+                  </button>
                 </div>
                 {farmMode === "existing" ? (
-                  <label className="mt-2 block text-xs font-medium text-muted-foreground">สวน
-                    <select value={farmFilter} onChange={(event) => { setFarmFilter(event.target.value); setNewPlotSiteId(""); }} className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary">
-                      {dragonfly.dashboardFarms.map((farm) => <option key={farm.id} value={farm.id}>{farm.name} · {farm.location}</option>)}
+                  <label className="mt-2 block text-xs font-medium text-muted-foreground">
+                    สวน
+                    <select
+                      value={farmFilter}
+                      onChange={(event) => {
+                        setFarmFilter(event.target.value);
+                        setNewPlotSiteId("");
+                      }}
+                      className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+                    >
+                      {dragonfly.dashboardFarms.map((farm) => (
+                        <option key={farm.id} value={farm.id}>
+                          {farm.name} · {farm.location}
+                        </option>
+                      ))}
                     </select>
                   </label>
                 ) : (
-                  <div className="mt-2 grid grid-cols-2 gap-2"><label className="text-xs font-medium text-muted-foreground">ชื่อสวน<input value={newFarmName} onChange={(event) => setNewFarmName(event.target.value)} placeholder="เช่น สวนบ้านคลอง" className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary" /></label><label className="text-xs font-medium text-muted-foreground">พื้นที่/จังหวัด<input value={newFarmLocation} onChange={(event) => setNewFarmLocation(event.target.value)} placeholder="เช่น จันทบุรี" className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary" /></label></div>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <label className="text-xs font-medium text-muted-foreground">
+                      ชื่อสวน
+                      <input
+                        value={newFarmName}
+                        onChange={(event) => setNewFarmName(event.target.value)}
+                        placeholder="เช่น สวนบ้านคลอง"
+                        className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary"
+                      />
+                    </label>
+                    <label className="text-xs font-medium text-muted-foreground">
+                      พื้นที่/จังหวัด
+                      <input
+                        value={newFarmLocation}
+                        onChange={(event) => setNewFarmLocation(event.target.value)}
+                        placeholder="เช่น จันทบุรี"
+                        className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary"
+                      />
+                    </label>
+                  </div>
                 )}
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button type="button" disabled={farmMode === "new"} onClick={() => setSiteMode("existing")} className={`rounded-lg border px-2 py-2 text-xs font-semibold disabled:opacity-45 ${siteMode === "existing" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>เลือกโซนเดิม</button>
-                  <button type="button" onClick={() => setSiteMode("new")} className={`rounded-lg border px-2 py-2 text-xs font-semibold ${siteMode === "new" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}>สร้างโซนใหม่</button>
+                  <button
+                    type="button"
+                    disabled={farmMode === "new"}
+                    onClick={() => setSiteMode("existing")}
+                    className={`rounded-lg border px-2 py-2 text-xs font-semibold disabled:opacity-45 ${siteMode === "existing" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                  >
+                    เลือกโซนเดิม
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSiteMode("new")}
+                    className={`rounded-lg border px-2 py-2 text-xs font-semibold ${siteMode === "new" ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+                  >
+                    สร้างโซนใหม่
+                  </button>
                 </div>
-                {siteMode === "existing" ? <label className="mt-2 block text-xs font-medium text-muted-foreground">โซนของแปลง<select value={newPlotSiteId} onChange={(event) => setNewPlotSiteId(event.target.value)} className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"><option value="">ยังไม่ระบุโซน</option>{farmSites.map((site) => <option key={site.id} value={site.id}>{site.code} · {site.name}</option>)}</select></label> : <label className="mt-2 block text-xs font-medium text-muted-foreground">ชื่อโซนใหม่<input value={newSiteName} onChange={(event) => setNewSiteName(event.target.value)} placeholder="เช่น โซนผลผลิต 1" className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary" /></label>}
+                {siteMode === "existing" ? (
+                  <label className="mt-2 block text-xs font-medium text-muted-foreground">
+                    โซนของแปลง
+                    <select
+                      value={newPlotSiteId}
+                      onChange={(event) => setNewPlotSiteId(event.target.value)}
+                      className="mt-1.5 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm font-semibold text-foreground outline-none focus:border-primary"
+                    >
+                      <option value="">ยังไม่ระบุโซน</option>
+                      {farmSites.map((site) => (
+                        <option key={site.id} value={site.id}>
+                          {site.code} · {site.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                ) : (
+                  <label className="mt-2 block text-xs font-medium text-muted-foreground">
+                    ชื่อโซนใหม่
+                    <input
+                      value={newSiteName}
+                      onChange={(event) => setNewSiteName(event.target.value)}
+                      placeholder="เช่น โซนผลผลิต 1"
+                      className="mt-1 block w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary"
+                    />
+                  </label>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground">ชื่อเรียกแปลง</label>
@@ -1237,13 +1517,32 @@ function PlotsPage() {
               </div>
 
               <div className="rounded-xl border border-primary/25 bg-primary-soft/35 p-3">
-                <p className="text-xs font-bold text-primary">พืช/ผลไม้ที่ระบบแนะนำสำหรับตำแหน่งนี้</p>
-                <p className="mt-1 text-[11px] text-muted-foreground">ประมาณการจากพิกัด GPS ขนาดพื้นที่ และบริบทโซนที่เลือกใน Demo Mode ยังไม่ได้ใช้ผลตรวจดิน แหล่งน้ำ หรือราคาตลาดจริง</p>
+                <p className="text-xs font-bold text-primary">
+                  พืช/ผลไม้ที่ระบบแนะนำสำหรับตำแหน่งนี้
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  ประมาณการจากพิกัด GPS ขนาดพื้นที่ และบริบทโซนที่เลือกใน Demo Mode
+                  ยังไม่ได้ใช้ผลตรวจดิน แหล่งน้ำ หรือราคาตลาดจริง
+                </p>
                 <div className="mt-2 space-y-2">
                   {plantingRecommendations.map((item) => (
-                    <button key={item.name} type="button" onClick={() => handleSelectPresetCrop(item.name, item.emoji)} className="flex w-full items-start gap-2 rounded-lg border border-border bg-card p-2.5 text-left transition-colors hover:border-primary">
-                      <span className="text-lg">{item.emoji}</span>
-                      <span className="min-w-0 flex-1"><span className="block text-xs font-semibold text-foreground">{item.name}</span><span className="mt-0.5 block text-[11px] leading-relaxed text-muted-foreground">{item.reason}</span></span>
+                    <button
+                      key={item.name}
+                      type="button"
+                      onClick={() => handleSelectPresetCrop(item.name, item.emoji)}
+                      className="flex w-full items-start gap-2 rounded-lg border border-border bg-card p-2.5 text-left transition-colors hover:border-primary"
+                    >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                        <FarmIcon crop={item.name} className="size-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xs font-semibold text-foreground">
+                          {item.name}
+                        </span>
+                        <span className="mt-0.5 block text-[11px] leading-relaxed text-muted-foreground">
+                          {item.reason}
+                        </span>
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -1251,7 +1550,20 @@ function PlotsPage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground">ชนิดพืชเพาะปลูก</label>
-                <SearchableSelect label="เลือกจากชนิดพืชในระบบ" options={cropPresets.map((preset) => ({ value: preset.name, label: `${preset.emoji} ${preset.name}` }))} value={cropPresets.some((preset) => preset.name === cropType) ? cropType : ""} onChange={(name) => { const preset = cropPresets.find((item) => item.name === name); if (preset) handleSelectPresetCrop(preset.name, preset.emoji); }} allLabel="เลือกชนิดพืช" searchPlaceholder="ค้นหาผลไม้หรือพืชเศรษฐกิจ" />
+                <SearchableSelect
+                  label="เลือกจากชนิดพืชในระบบ"
+                  options={cropPresets.map((preset) => ({
+                    value: preset.name,
+                    label: `${preset.emoji} ${preset.name}`,
+                  }))}
+                  value={cropPresets.some((preset) => preset.name === cropType) ? cropType : ""}
+                  onChange={(name) => {
+                    const preset = cropPresets.find((item) => item.name === name);
+                    if (preset) handleSelectPresetCrop(preset.name, preset.emoji);
+                  }}
+                  allLabel="เลือกชนิดพืช"
+                  searchPlaceholder="ค้นหาผลไม้หรือพืชเศรษฐกิจ"
+                />
                 <div className="grid grid-cols-5 gap-2 mt-2">
                   <div className="col-span-1">
                     <input
@@ -1289,7 +1601,9 @@ function PlotsPage() {
                         onChange={(e) => setAgeYears(e.target.value)}
                         className="w-full text-right pr-6 py-2 border border-border rounded-xl text-sm focus:outline-primary"
                       />
-                      <span className="absolute right-2 top-2 text-[10px] text-muted-foreground">ปี</span>
+                      <span className="absolute right-2 top-2 text-[10px] text-muted-foreground">
+                        ปี
+                      </span>
                     </div>
                     <div className="relative flex-1">
                       <input
@@ -1300,7 +1614,9 @@ function PlotsPage() {
                         onChange={(e) => setAgeMonths(e.target.value)}
                         className="w-full text-right pr-6 py-2 border border-border rounded-xl text-sm focus:outline-primary"
                       />
-                      <span className="absolute right-2 top-2 text-[10px] text-muted-foreground">เดือน</span>
+                      <span className="absolute right-2 top-2 text-[10px] text-muted-foreground">
+                        เดือน
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1315,7 +1631,9 @@ function PlotsPage() {
                       onChange={(e) => setTreeCount(e.target.value)}
                       className="w-full text-right pr-8 py-2 border border-border rounded-xl text-sm focus:outline-primary"
                     />
-                    <span className="absolute right-2 top-2 text-xs text-muted-foreground">ต้น</span>
+                    <span className="absolute right-2 top-2 text-xs text-muted-foreground">
+                      ต้น
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1334,7 +1652,8 @@ function PlotsPage() {
                   </span>
                   <span>ขนาดพื้นที่:</span>
                   <span className="text-right text-foreground font-bold">
-                    {thaiArea.rai} ไร่ {thaiArea.ngan} งาน {thaiArea.wa} ตร.ว. ({thaiArea.totalRai.toFixed(2)} ไร่)
+                    {thaiArea.rai} ไร่ {thaiArea.ngan} งาน {thaiArea.wa} ตร.ว. (
+                    {thaiArea.totalRai.toFixed(2)} ไร่)
                   </span>
                   <span>พืชที่ปลูก:</span>
                   <span className="text-right text-foreground font-medium">

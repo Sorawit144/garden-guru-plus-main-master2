@@ -14,6 +14,11 @@ import {
   UserRound,
   ShieldCheck,
   ListChecks,
+  PackageCheck,
+  Scissors,
+  ClipboardList,
+  Wrench,
+  Search,
 } from "lucide-react";
 import { AppShell, Badge, Card, Progress, SectionTitle, baht } from "@/components/AppShell";
 import { BrandMark } from "@/components/BrandMark";
@@ -21,6 +26,13 @@ import { notifications, todayTasks as legacyTodayTasks, weather } from "@/lib/fa
 import { useDragonflyData } from "@/hooks/useDragonflyData";
 import { usePlots } from "@/hooks/usePlots";
 import { ExperienceProgression } from "@/components/ExperienceProgression";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { getTaskReviewerLabel, isTaskInPeriod, type SmartTask } from "@/lib/dragonfly-data";
 
 export const Route = createFileRoute("/")({
@@ -112,6 +124,9 @@ function Dashboard() {
   ).length;
 
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [selectedTodayTask, setSelectedTodayTask] = useState<
+    (SmartTask & { time?: string; done?: boolean }) | null
+  >(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -414,7 +429,7 @@ function Dashboard() {
               <p className="text-xs font-medium text-muted-foreground">คำแนะนำ AI</p>
               <Sparkles className="size-4 text-primary" />
             </div>
-            <p className="mt-2 text-sm font-semibold leading-snug">ยังไม่ต้องรดน้ำ 💧</p>
+            <p className="mt-2 text-sm font-semibold leading-snug">ยังไม่ต้องรดน้ำ</p>
             <p className="mt-1 text-xs text-muted-foreground">ใส่ปุ๋ยแปลงมังคุด</p>
             <p className="mt-3 inline-flex items-center gap-0.5 text-xs font-semibold text-primary">
               ดู 4 ข้อ <ArrowUpRight className="size-3.5" />
@@ -441,24 +456,12 @@ function Dashboard() {
       </SectionTitle>
       <Card className="overflow-hidden p-0">
         <div className="border-b border-border bg-muted/35 px-4 py-3">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold text-foreground">
-                ตรงกับปฏิทิน: วันนี้ · {selectedFarm.name}
-              </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                {isOrganizationEmployee
-                  ? "แสดงเฉพาะงานที่องค์กรหรือทีมมอบหมายให้คุณ"
-                  : isPersonalWorkspace
-                    ? "แสดงเฉพาะ Todo และงานดูแลในสวนของฉัน"
-                    : "แสดงทุกทีม ทุกโซน และทุกแปลงในฟาร์มนี้"}
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold text-foreground">วันนี้ · {selectedFarm.name}</p>
             <ListChecks className="mt-0.5 size-4 shrink-0 text-primary" />
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
             {[
-              { label: "ทั้งหมด", value: todayFarmTasks.length },
               { label: "ยังเปิด", value: todayOpenCount },
               { label: "รอตรวจ", value: todayReviewCount },
               { label: "เสร็จแล้ว", value: todayCompletedCount },
@@ -489,17 +492,19 @@ function Dashboard() {
               const status = getDashboardTaskStatus(task);
               const isCompleted = status === "Completed";
               return (
-                <div key={smartTask.id} className="px-4 py-4">
+                <button
+                  key={smartTask.id}
+                  type="button"
+                  onClick={() => setSelectedTodayTask(smartTask)}
+                  className="w-full px-4 py-3.5 text-left hover:bg-muted/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+                >
                   <div className="flex items-start gap-3">
-                    <div className="w-12 shrink-0 text-center">
+                    <div className="shrink-0">
                       <span
-                        className={`flex size-10 items-center justify-center rounded-lg text-base ${isCompleted ? "bg-primary-soft" : status === "Delayed" ? "bg-destructive/10" : "bg-muted"}`}
+                        className={`flex size-10 items-center justify-center rounded-xl ${isCompleted ? "bg-primary-soft text-primary" : status === "Delayed" ? "bg-destructive/10 text-destructive" : "bg-muted text-primary"}`}
                       >
                         {getTaskTypeIcon(smartTask.type)}
                       </span>
-                      <p className="mt-1 text-[10px] font-semibold text-muted-foreground">
-                        {smartTask.plannedStart ?? smartTask.time ?? "--:--"}
-                      </p>
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -509,53 +514,16 @@ function Dashboard() {
                           >
                             {smartTask.title}
                           </p>
-                          <p className="mt-1 text-[11px] text-muted-foreground">
-                            {smartTask.id} · {plot ? `${plot.id} ${plot.name}` : smartTask.plot}
-                            {plot?.crop ? ` · ${plot.crop}` : ""}
-                            {site ? ` · ${site.name}` : ""}
+                          <p className="mt-1 truncate text-[11px] text-muted-foreground">
+                            {plot ? plot.name : smartTask.plot} ·{" "}
+                            {smartTask.plannedStart ?? smartTask.time ?? "ไม่ระบุเวลา"}
                           </p>
                         </div>
                         <Badge tone={getTaskStatusTone(status)}>{getTaskStatusLabel(status)}</Badge>
                       </div>
-
-                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                        <span className="inline-flex items-center gap-1">
-                          <Clock3 className="size-3" />
-                          {smartTask.estimatedMinutes
-                            ? `${smartTask.estimatedMinutes} นาที`
-                            : "ไม่ระบุระยะเวลา"}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <UserRound className="size-3" />
-                          {worker?.name ?? "รอมอบหมาย"}
-                          {smartTask.team ? ` · ${smartTask.team}` : ""}
-                        </span>
-                        {smartTask.origin === "team" || smartTask.team ? (
-                          <span className="inline-flex items-center gap-1">
-                            <ShieldCheck className="size-3" />
-                            {getTaskReviewerLabel(smartTask)}
-                          </span>
-                        ) : null}
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <span
-                          className={`rounded-md px-2 py-1 text-[10px] font-semibold ${getTaskPriorityTone(smartTask.priority)}`}
-                        >
-                          ความสำคัญ {getTaskPriorityLabel(smartTask.priority)}
-                        </span>
-                        <span className="rounded-md bg-muted px-2 py-1 text-[10px] font-medium text-muted-foreground">
-                          {getTaskTypeLabel(smartTask.type)}
-                        </span>
-                      </div>
-                      {smartTask.reason ? (
-                        <p className="mt-2 rounded-lg bg-destructive/10 px-2.5 py-2 text-[11px] text-destructive">
-                          สาเหตุที่ล่าช้า: {smartTask.reason}
-                        </p>
-                      ) : null}
                     </div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -574,6 +542,69 @@ function Dashboard() {
           </div>
         )}
       </Card>
+      <Dialog
+        open={Boolean(selectedTodayTask)}
+        onOpenChange={(open) => !open && setSelectedTodayTask(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedTodayTask?.title}</DialogTitle>
+            <DialogDescription>
+              {selectedTodayTask
+                ? `${selectedTodayTask.plot} · ${getTaskTypeLabel(selectedTodayTask.type)}`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedTodayTask ? (
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-muted p-3">
+                  <p className="text-[11px] text-muted-foreground">เวลา</p>
+                  <p className="mt-1 font-semibold">
+                    {selectedTodayTask.plannedStart ?? selectedTodayTask.time ?? "ไม่ระบุ"}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-muted p-3">
+                  <p className="text-[11px] text-muted-foreground">สถานะ</p>
+                  <p className="mt-1 font-semibold">
+                    {getTaskStatusLabel(getDashboardTaskStatus(selectedTodayTask))}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2 rounded-xl border border-border p-3 text-xs text-muted-foreground">
+                <p>
+                  <span className="font-semibold text-foreground">ระยะเวลา:</span>{" "}
+                  {selectedTodayTask.estimatedMinutes
+                    ? `${selectedTodayTask.estimatedMinutes} นาที`
+                    : "ไม่ระบุ"}
+                </p>
+                <p>
+                  <span className="font-semibold text-foreground">ผู้รับผิดชอบ:</span>{" "}
+                  {dragonfly.state.workers.find(
+                    (worker) => worker.id === selectedTodayTask.assignedWorkerId,
+                  )?.name ?? "รอมอบหมาย"}
+                  {selectedTodayTask.team ? ` · ${selectedTodayTask.team}` : ""}
+                </p>
+                {selectedTodayTask.team ? (
+                  <p>
+                    <span className="font-semibold text-foreground">ผู้ตรวจรับ:</span>{" "}
+                    {getTaskReviewerLabel(selectedTodayTask)}
+                  </p>
+                ) : null}
+                <p>
+                  <span className="font-semibold text-foreground">ความสำคัญ:</span>{" "}
+                  {getTaskPriorityLabel(selectedTodayTask.priority)}
+                </p>
+                {selectedTodayTask.reason ? (
+                  <p className="rounded-lg bg-destructive/10 p-2 text-destructive">
+                    สาเหตุ: {selectedTodayTask.reason}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {dragonfly.isDemoMode && dragonfly.state.recommendations.length > 0 ? (
         <>
@@ -763,11 +794,18 @@ function getTaskTypeLabel(type: string) {
 }
 
 function getTaskTypeIcon(type: string) {
-  if (["Irrigation", "รดน้ำ"].includes(type)) return "💧";
-  if (["Fertilizer", "ใส่ปุ๋ย", "Plant Health"].includes(type)) return "🌿";
-  if (type === "Harvest") return "🧺";
-  if (type === "Pruning") return "✂️";
-  if (type === "Record") return "📝";
-  if (type === "Maintenance") return "🔧";
-  return "🔎";
+  const Icon = ["Irrigation", "รดน้ำ"].includes(type)
+    ? Droplets
+    : ["Fertilizer", "ใส่ปุ๋ย", "Plant Health"].includes(type)
+      ? Sprout
+      : type === "Harvest"
+        ? PackageCheck
+        : type === "Pruning"
+          ? Scissors
+          : type === "Record"
+            ? ClipboardList
+            : type === "Maintenance"
+              ? Wrench
+              : Search;
+  return <Icon className="size-5" aria-hidden="true" />;
 }

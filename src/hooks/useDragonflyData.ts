@@ -37,10 +37,11 @@ export type WorkspaceContext = "personal" | "organization";
 
 const WORKSPACE_CONTEXT_KEY = "easyplants_workspace_context";
 const WORKSPACE_CONTEXT_EVENT = "easyplants_workspace_context_updated";
+const ORGANIZATION_TEAM_KEY = "easyplants_organization_team";
 export const PERSONAL_FARM_ID = "FARM-PERSONAL";
 
 function getDefaultWorkspaceContext(personaId: DemoPersonaId): WorkspaceContext {
-  return ["employee", "commercial", "export"].includes(personaId)
+  return ["employee", "supervisor", "commercial", "export"].includes(personaId)
     ? "organization"
     : "personal";
 }
@@ -58,8 +59,7 @@ export function useDragonflyData() {
   }, []);
 
   const persona = useMemo(() => getCurrentDemoPersona(state), [state]);
-  const [workspaceContext, setWorkspaceContextState] =
-    useState<WorkspaceContext>("organization");
+  const [workspaceContext, setWorkspaceContextState] = useState<WorkspaceContext>("organization");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -84,6 +84,16 @@ export function useDragonflyData() {
     }
   };
 
+  const [organizationTeam, setOrganizationTeamState] = useState("ทีมดูแลแปลง");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setOrganizationTeamState(window.localStorage.getItem(ORGANIZATION_TEAM_KEY) ?? "ทีมดูแลแปลง");
+  }, []);
+  const setOrganizationTeam = (team: string) => {
+    setOrganizationTeamState(team);
+    if (typeof window !== "undefined") window.localStorage.setItem(ORGANIZATION_TEAM_KEY, team);
+  };
+
   const isOrganizationContext = workspaceContext === "organization";
   const effectiveRole = isOrganizationContext
     ? persona.role
@@ -91,9 +101,7 @@ export function useDragonflyData() {
       ? "ชาวสวนมือใหม่"
       : "เจ้าของสวน";
   const effectiveSubscription = isOrganizationContext ? persona.subscription : "Free";
-  const workspaceLabel = isOrganizationContext
-    ? "องค์กร EasyPlants Produce"
-    : "สวนของฉัน";
+  const workspaceLabel = isOrganizationContext ? "องค์กร EasyPlants Produce" : "สวนของฉัน";
   const [activeDashboardFarmId, setActiveDashboardFarmId] = useState("FARM-PRIMARY");
   const dashboardFarms = useMemo(() => {
     const organizationFarms = getDashboardFarms(state);
@@ -104,20 +112,22 @@ export function useDragonflyData() {
       (plot) => (plot.farmId ?? "FARM-PRIMARY") === PERSONAL_FARM_ID,
     );
     const crops = [...new Set(personalPlots.map((plot) => plot.crop))];
-    return [{
-      id: PERSONAL_FARM_ID,
-      name: "สวนส่วนตัวของฉัน",
-      type: "Personal Farm",
-      areaRai: personalPlots.reduce((sum, plot) => sum + plot.area, 0),
-      primaryCrop: crops[0] ?? "ยังไม่ระบุพืช",
-      varieties: crops,
-      plotCount: personalPlots.length,
-      treeCount: personalPlots.reduce((sum, plot) => sum + plot.trees, 0),
-      workerCount: 0,
-      location: "ยังไม่ระบุพื้นที่",
-      status: "Normal" as const,
-      dataLabel: "ข้อมูลสวนส่วนตัว แยกจากฟาร์ม งาน และบุคลากรขององค์กร",
-    }];
+    return [
+      {
+        id: PERSONAL_FARM_ID,
+        name: "สวนส่วนตัวของฉัน",
+        type: "Personal Farm",
+        areaRai: personalPlots.reduce((sum, plot) => sum + plot.area, 0),
+        primaryCrop: crops[0] ?? "ยังไม่ระบุพืช",
+        varieties: crops,
+        plotCount: personalPlots.length,
+        treeCount: personalPlots.reduce((sum, plot) => sum + plot.trees, 0),
+        workerCount: 0,
+        location: "ยังไม่ระบุพื้นที่",
+        status: "Normal" as const,
+        dataLabel: "ข้อมูลสวนส่วนตัว แยกจากฟาร์ม งาน และบุคลากรขององค์กร",
+      },
+    ];
   }, [persona.id, state, workspaceContext]);
   const activeDashboardFarm =
     dashboardFarms.find((farm) => farm.id === activeDashboardFarmId) ?? dashboardFarms[0];
@@ -317,8 +327,7 @@ export function useDragonflyData() {
     if (
       assignment.assignedWorkerId &&
       !state.workers.some(
-        (worker) =>
-          worker.id === assignment.assignedWorkerId && worker.crew === assignment.team,
+        (worker) => worker.id === assignment.assignedWorkerId && worker.crew === assignment.team,
       )
     ) {
       return { ok: false as const, reason: "พนักงานไม่ได้อยู่ในทีมที่เลือก" };
@@ -734,6 +743,8 @@ export function useDragonflyData() {
     persona,
     workspaceContext,
     setWorkspaceContext,
+    organizationTeam,
+    setOrganizationTeam,
     isOrganizationContext,
     effectiveRole,
     effectiveSubscription,

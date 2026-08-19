@@ -24,7 +24,7 @@ export function AppShell({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background md:px-5 md:py-5">
+    <div className="min-h-screen bg-[var(--canvas)] md:px-5 md:py-5">
       <div className="app-frame mx-auto flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-background md:min-h-[calc(100vh-2.5rem)] md:max-w-5xl md:rounded-[28px]">
         <header
           data-tour="app-shell-header"

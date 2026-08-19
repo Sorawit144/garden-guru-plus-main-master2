@@ -1,7 +1,8 @@
 import { plots as legacyPlots, type Plot } from "@/lib/farm-data";
 
 export type DataMode = "demo" | "database";
-export type DemoPersonaId = "beginner" | "owner" | "commercial" | "export" | "employee";
+export type DemoPersonaId =
+  "beginner" | "owner" | "commercial" | "export" | "employee" | "supervisor";
 export type KnowledgeLevel = "Beginner" | "Intermediate" | "Experienced";
 export type OperationScale = "Personal" | "Small Farm" | "Commercial Farm" | "Enterprise / Export";
 export type SubscriptionPlan = "Free" | "Farm Pro";
@@ -444,18 +445,21 @@ export function canPersonaApproveTask(
   personaId: DemoPersonaId,
   task: Pick<SmartTask, "origin" | "team" | "type" | "approvalMode">,
   roles: OrganizationRole[] = defaultOrganizationRoles,
+  reviewerTeam?: string,
 ) {
   const roleIds =
     personaId === "export"
       ? ["ROLE-MANAGER", "ROLE-QA"]
       : personaId === "commercial"
         ? ["ROLE-MANAGER"]
-        : personaId === "owner"
-          ? ["ROLE-OWNER"]
-          : ["ROLE-WORKER"];
+        : personaId === "supervisor"
+          ? ["ROLE-SUPERVISOR"]
+          : personaId === "owner"
+            ? ["ROLE-OWNER"]
+            : ["ROLE-WORKER"];
   return roles
     .filter((role) => roleIds.includes(role.id))
-    .some((role) => canOrganizationRoleApproveTask(role, task, task.team));
+    .some((role) => canOrganizationRoleApproveTask(role, task, reviewerTeam));
 }
 
 export type IoTDevice = {
@@ -781,6 +785,23 @@ export const demoPersonas: DemoPersona[] = [
       farmSize: "20-100 rai",
       workforce: "More than 20 workers",
       technology: ["Sensors", "Automatic irrigation", "Weather station"],
+      knowledgeLevel: "Intermediate",
+      operationScale: "Commercial Farm",
+      tutorialsEnabled: false,
+      recommendationsEnabled: true,
+    },
+  },
+  {
+    id: "supervisor",
+    label: "Team Lead",
+    role: "หัวหน้าทีม",
+    subscription: "Farm Pro",
+    profile: {
+      farmingType: "Field operations",
+      experience: "Team coordination",
+      farmSize: "Assigned zones",
+      workforce: "Crew lead",
+      technology: ["Mobile task list", "Team work orders"],
       knowledgeLevel: "Intermediate",
       operationScale: "Commercial Farm",
       tutorialsEnabled: false,
@@ -2345,8 +2366,7 @@ export function getDemoState(): DemoState {
     }
   }
 
-  const personaId =
-    (window.localStorage.getItem(PERSONA_KEY) as DemoPersonaId | null) ?? "export";
+  const personaId = (window.localStorage.getItem(PERSONA_KEY) as DemoPersonaId | null) ?? "export";
   const state = buildDemoState(personaId);
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   return state;
@@ -2354,7 +2374,7 @@ export function getDemoState(): DemoState {
 
 function normalizeDemoState(stored: unknown): DemoState {
   const saved = stored && typeof stored === "object" ? (stored as Partial<DemoState>) : {};
-const personaId = "export" as DemoPersonaId;
+  const personaId = "export" as DemoPersonaId;
   const baseline = buildDemoState(personaId);
   const savedTasks = Array.isArray(saved.tasks) ? saved.tasks : undefined;
   const isLegacySchedule =
